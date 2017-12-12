@@ -1,8 +1,9 @@
 /[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Bb]in/
 /Assets/AssetStoreTools*
 
 # Visual Studio 2015 cache directory
@@ -24,7 +25,7 @@ ExportedObj/
 *.pdb
 
 # Unity3D generated meta files
-*.pidb.meta
+*.meta
 
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
@@ -32,3 +33,21 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+# except build/, which is used as an MSBuild target.
+!**/packages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/packages/repositories.config
+# NuGet v3's project.json files produces more ignoreable files
+*.nuget.props
+*.nuget.targets
+
+# Visual Studio GlobalSuppressions
+GlobalSuppressions.cs*
+
+# TextMesh Pro
+/Assets/TextMesh Pro/Examples*
