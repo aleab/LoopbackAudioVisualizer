@@ -18,7 +18,8 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
         private SerializedProperty fadeDurationMilliseconds;
         private SerializedProperty position;
         private SerializedProperty tooltipPrefab;
-        
+        private SerializedProperty alwaysRecreateTooltip;
+
         private void OnEnable()
         {
             this.targetObject = this.target as ShowTooltipOnHover;
@@ -30,6 +31,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
             this.fadeDurationMilliseconds = this.serializedObject.FindProperty("fadeDurationMilliseconds");
             this.position = this.serializedObject.FindProperty("position");
             this.tooltipPrefab = this.serializedObject.FindProperty("tooltipPrefab");
+            this.alwaysRecreateTooltip = this.serializedObject.FindProperty("alwaysRecreateTooltip");
         }
 
         public override void OnInspectorGUI()
@@ -65,6 +67,10 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
             EditorExtension.DrawPropertyFieldSafe(this.position, nameof(this.position), new GUIContent("Position"));
             EditorExtension.DrawPropertyFieldSafe(this.delayMilliseconds, nameof(this.delayMilliseconds), new GUIContent("Delay (ms)"));
             EditorExtension.DrawPropertyFieldSafe(this.fadeDurationMilliseconds, nameof(this.fadeDurationMilliseconds), new GUIContent("Fade Duration (ms)"));
+
+
+            EditorGUILayout.Space();
+            EditorExtension.DrawPropertyFieldSafe(this.alwaysRecreateTooltip, nameof(this.alwaysRecreateTooltip), new GUIContent("Re-Create Always", "Re-create the tooltip every time it needs to be shown; the default behaviour is to create it once and leave it hidden in the scene if not shown.\n\nSome hoverable components (e.g. dropdown items) might be re-created periodically themselves, thus causing a large number of unused objects to be created."));
 
             this.serializedObject.ApplyModifiedProperties();
         }

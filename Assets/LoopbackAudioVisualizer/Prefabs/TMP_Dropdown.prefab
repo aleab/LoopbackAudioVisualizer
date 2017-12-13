@@ -306,6 +306,7 @@ MonoBehaviour:
   position: 1
   delayMilliseconds: 850
   fadeDurationMilliseconds: 250
+  alwaysRecreateTooltip: 0
 --- !u!114 &114209778843899666
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -680,6 +681,7 @@ MonoBehaviour:
   position: 1
   delayMilliseconds: 850
   fadeDurationMilliseconds: 250
+  alwaysRecreateTooltip: 1
 --- !u!114 &114699855709249604
 MonoBehaviour:
   m_ObjectHideFlags: 1

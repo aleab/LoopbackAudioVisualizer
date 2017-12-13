@@ -10,6 +10,25 @@ namespace Aleab.LoopbackAudioVisualizer.UI
         private const int MIN_MAX_WIDTH = 100;
         private const int MAX_MAX_WIDTH = 320;
 
+        private GameObject _owner;
+
+        /// <summary>
+        /// The owner of the tooltip
+        /// </summary>
+        /// <remarks> Can only be set once! </remarks>
+        /// <exception cref="SetOncePropertyAlreadySetException"> if the property's set accessor is used after already setting a first value. </exception>
+        public GameObject Owner
+        {
+            get { return this._owner; }
+            set
+            {
+                if (this._owner == null)
+                    this._owner = value;
+                else
+                    throw new SetOncePropertyAlreadySetException(nameof(this.Owner));
+            }
+        }
+
         #region Inspector
 
 #pragma warning disable 0649
@@ -55,6 +74,23 @@ namespace Aleab.LoopbackAudioVisualizer.UI
         {
             this.StartCoroutine(this.AdjustSize());
             base.OnShown();
+        }
+
+        public override bool Equals(object other)
+        {
+            Tooltip that = other as Tooltip;
+            if (that == null)
+                return false;
+
+            return (this.text != null && this.text.Equals(that.text) || this.text == null && that.text == null) &&
+                   this.maxWidth == that.maxWidth &&
+                   (this._owner != null && this._owner.Equals(that._owner) || this._owner == null && that._owner == null);
+        }
+
+        public override int GetHashCode()
+        {
+            int k = 407;
+            return (this.text?.GetHashCode() ?? (k = k * k)) ^ (this.maxWidth + k) ^ (this._owner?.GetHashCode() ?? (k * k));
         }
     }
 }

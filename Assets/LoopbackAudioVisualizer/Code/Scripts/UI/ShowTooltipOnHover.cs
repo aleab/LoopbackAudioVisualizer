@@ -1,9 +1,9 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Common;
 using Aleab.LoopbackAudioVisualizer.Helpers;
-using Aleab.LoopbackAudioVisualizer.Scripts;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Aleab.LoopbackAudioVisualizer.Scripts;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -51,6 +51,9 @@ namespace Aleab.LoopbackAudioVisualizer.UI
         [Range(0.0f, 1000.0f)]
         private int fadeDurationMilliseconds = 250;
 
+        [SerializeField]
+        private bool alwaysRecreateTooltip;
+
 #pragma warning restore 0649
 
         #endregion Inspector
@@ -74,18 +77,21 @@ namespace Aleab.LoopbackAudioVisualizer.UI
             this.showTooltipCoroutine = this.StartCoroutine(this.ShowTooltipCoroutine());
         }
 
-        public void CancelTooltip()
+        public void CancelShowTooltipOrHide()
         {
             if (this.showTooltipCoroutine != null)
                 this.StopCoroutine(this.showTooltipCoroutine);
             this.showTooltipCoroutine = null;
-            this.tooltip.FadeOut(this.fadeDurationMilliseconds / 1000.0f);
+
+            this.tooltip?.FadeOut(this.fadeDurationMilliseconds / 1000.0f);
+            if (this.alwaysRecreateTooltip)
+                this.Invoke(this.DestroyTooltip, this.fadeDurationMilliseconds / 1000.0f);
         }
 
         private IEnumerator ShowTooltipCoroutine()
         {
             if (this.tooltip == null)
-                this.CreateTooltip();
+                this.tooltip = TooltipFactory.Instance.CreateTooltip(this.tooltipPrefab, this.gameObject);
 
             this.RefreshTooltip();
 
@@ -95,16 +101,7 @@ namespace Aleab.LoopbackAudioVisualizer.UI
                 remainingDelay -= 100;
                 yield return new WaitForSecondsRealtime(remainingDelay >= 100 ? 0.1f : remainingDelay / 1000.0f);
             }
-            this.tooltip.FadeIn(this.fadeDurationMilliseconds / 1000.0f);
-        }
-
-        private void CreateTooltip()
-        {
-            GameObject tooltipGameObject = Instantiate(this.tooltipPrefab.gameObject, UIController.Canvas.gameObject.transform);
-            tooltipGameObject.SetActive(false);
-            tooltipGameObject.name = $"{this.gameObject.name} (tooltip)";
-
-            this.tooltip = tooltipGameObject.GetComponent<Tooltip>();
+            this.tooltip?.FadeIn(this.fadeDurationMilliseconds / 1000.0f);
         }
 
         private void RefreshTooltip()
@@ -123,6 +120,15 @@ namespace Aleab.LoopbackAudioVisualizer.UI
             rectTransform.anchorMax = Vector2.zero;
             rectTransform.pivot = this.position.ToUnitySelfPivotPoint();
             rectTransform.position = thisRectTransform.GetWorldPositionOfLocalNormalizedPoint(this.position.ToUnityOtherPivotPoint());
+        }
+
+        private void DestroyTooltip()
+        {
+            if (this.tooltip != null)
+            {
+                Destroy(this.tooltip.gameObject);
+                this.tooltip = null;
+            }
         }
 
         /// <summary>
@@ -149,7 +155,7 @@ namespace Aleab.LoopbackAudioVisualizer.UI
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            this.CancelTooltip();
+            this.CancelShowTooltipOrHide();
         }
 
         public void OnPointerClick(PointerEventData eventData)
