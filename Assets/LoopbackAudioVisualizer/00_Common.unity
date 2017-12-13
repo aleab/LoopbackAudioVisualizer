@@ -123,10 +123,10 @@ GameObject:
   - component: {fileID: 34002151}
   m_Layer: 0
   m_Name: '[UI]'
-  m_TagString: Untagged
+  m_TagString: GameController
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &34002150
 Transform:
@@ -772,7 +772,7 @@ GameObject:
   - component: {fileID: 455369038}
   m_Layer: 0
   m_Name: Main Camera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1065,10 +1065,10 @@ GameObject:
   - component: {fileID: 1121138789}
   m_Layer: 0
   m_Name: '[C] StartupController'
-  m_TagString: Untagged
+  m_TagString: GameController
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!114 &1121138789
 MonoBehaviour:
