@@ -7,6 +7,12 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
 {
     public static class EditorExtension
     {
+        public static void DrawHeader(string text)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(new GUIContent(text), EditorStyles.boldLabel);
+        }
+
         #region DrawPropertyFieldSafe
 
         public static bool DrawPropertyFieldSafe(SerializedProperty property, string propertyName, bool includeChildren = true, params GUILayoutOption[] options)

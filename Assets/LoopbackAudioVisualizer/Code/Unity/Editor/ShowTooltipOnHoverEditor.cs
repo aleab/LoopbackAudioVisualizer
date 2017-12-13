@@ -44,21 +44,24 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
             EditorExtension.DrawPropertyFieldSafe(this.tooltipPrefab, nameof(this.tooltipPrefab), new GUIContent("Tooltip Prefab"));
 
             // [ Text ]––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+            EditorExtension.DrawHeader("Text");
             EditorExtension.DrawPropertyFieldSafe(this.useTextSource, nameof(this.useTextSource), new GUIContent("Use Text Source"));
             if (this.useTextSource.boolValue)
             {
                 EditorExtension.DrawPropertyFieldSafe(this.textSource, nameof(this.textSource), new GUIContent("Text Source"));
                 if (!this.targetObject.SetTextFromTextSource())
                     this.text.stringValue = null;
-
+                
                 EditorGUI.BeginDisabledGroup(true);
-                EditorExtension.DrawPropertyFieldSafe(this.text, nameof(this.text), new GUIContent("Text"));
+                EditorExtension.DrawPropertyFieldSafe(this.text, nameof(this.text));
                 EditorGUI.EndDisabledGroup();
             }
             else
-                EditorExtension.DrawPropertyFieldSafe(this.text, nameof(this.text), new GUIContent("Text"));
+                EditorExtension.DrawPropertyFieldSafe(this.text, nameof(this.text));
 
-            EditorGUILayout.Space();
+
+            // [ Tooltip Properties ]––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+            EditorExtension.DrawHeader("Tooltip Properties");
             EditorExtension.DrawPropertyFieldSafe(this.position, nameof(this.position), new GUIContent("Position"));
             EditorExtension.DrawPropertyFieldSafe(this.delayMilliseconds, nameof(this.delayMilliseconds), new GUIContent("Delay (ms)"));
             EditorExtension.DrawPropertyFieldSafe(this.fadeDurationMilliseconds, nameof(this.fadeDurationMilliseconds), new GUIContent("Fade Duration (ms)"));

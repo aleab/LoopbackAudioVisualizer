@@ -22,18 +22,18 @@ namespace Aleab.LoopbackAudioVisualizer.UI
         private Tooltip tooltipPrefab;
 
 #if UNITY_EDITOR
-
-        [Header("Text")]
+        
         public bool useTextSource;
 
 #endif
 
         [SerializeField]
+        [TextArea]
         private string text = string.Empty;
 
         [SerializeField]
         private TMP_Text textSource;
-
+        
         [SerializeField]
         private RelativePosition position = RelativePosition.Bottom;
 
