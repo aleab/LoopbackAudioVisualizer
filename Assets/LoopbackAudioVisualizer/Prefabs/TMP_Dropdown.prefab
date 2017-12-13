@@ -38,7 +38,7 @@ GameObject:
   - component: {fileID: 224519775758155288}
   - component: {fileID: 222433970249116048}
   - component: {fileID: 114244994183833964}
-  - component: {fileID: 114045100639989450}
+  - component: {fileID: 114297067067847592}
   m_Layer: 5
   m_Name: TMP_Dropdown
   m_TagString: Untagged
@@ -233,55 +233,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &114045100639989450
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1285387335116118}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1148083418, guid: 89f0137620f6af44b9ba852b4190e64e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Navigation:
-    m_Mode: 3
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 0.885481, g: 0.8881612, b: 0.941, a: 1}
-    m_HighlightedColor: {r: 0.941, g: 0.94384825, b: 1, a: 1}
-    m_PressedColor: {r: 0.791381, g: 0.7937764, b: 0.841, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 114244994183833964}
-  m_Template: {fileID: 224486095242416536}
-  m_CaptionText: {fileID: 114501981904449086}
-  m_CaptionImage: {fileID: 0}
-  m_ItemText: {fileID: 114295867207818244}
-  m_ItemImage: {fileID: 0}
-  m_Value: 0
-  m_Options:
-    m_Options: []
-  m_OnValueChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: TMPro.TMP_Dropdown+DropdownEvent, TextMeshPro-2017.2-1.0.56-Runtime,
-      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &114073455311045580
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -521,6 +472,56 @@ MonoBehaviour:
   - {fileID: 0}
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &114297067067847592
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1285387335116118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2e38fc5e59e44f8acfe3361e85ff191, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 0.885481, g: 0.8881612, b: 0.941, a: 1}
+    m_HighlightedColor: {r: 0.941, g: 0.94384825, b: 1, a: 1}
+    m_PressedColor: {r: 0.791381, g: 0.7937764, b: 0.841, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 114244994183833964}
+  m_Template: {fileID: 224486095242416536}
+  m_CaptionText: {fileID: 114501981904449086}
+  m_CaptionImage: {fileID: 0}
+  m_ItemText: {fileID: 114295867207818244}
+  m_ItemImage: {fileID: 0}
+  m_Value: 0
+  m_Options:
+    m_Options: []
+  m_OnValueChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: TMPro.TMP_Dropdown+DropdownEvent, TextMeshPro-2017.2-1.0.56-Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  arrow: {fileID: 114073455311045580}
 --- !u!114 &114409854903006754
 MonoBehaviour:
   m_ObjectHideFlags: 1
