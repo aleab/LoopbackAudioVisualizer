@@ -1,4 +1,4 @@
-﻿using Aleab.LoopbackAudioVisualizer.UI;
+﻿using Aleab.LoopbackAudioVisualizer.Scripts.UI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

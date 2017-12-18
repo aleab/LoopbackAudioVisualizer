@@ -3,12 +3,11 @@ using Aleab.LoopbackAudioVisualizer.Helpers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Aleab.LoopbackAudioVisualizer.Scripts;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Aleab.LoopbackAudioVisualizer.UI
+namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 {
     public class ShowTooltipOnHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
     {

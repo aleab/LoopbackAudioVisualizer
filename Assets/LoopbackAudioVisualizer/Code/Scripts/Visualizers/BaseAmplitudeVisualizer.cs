@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer.Visualizers
+namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 {
     /// <summary>
     /// Base class for amplitude visualizers.

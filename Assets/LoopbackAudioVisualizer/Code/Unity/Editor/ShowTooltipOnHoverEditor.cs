@@ -1,6 +1,6 @@
 ﻿#if UNITY_EDITOR
 
-using Aleab.LoopbackAudioVisualizer.UI;
+using Aleab.LoopbackAudioVisualizer.Scripts.UI;
 using UnityEditor;
 using UnityEngine;
 
@@ -41,7 +41,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.PropertyField(this.serializedObject.FindProperty("m_Script"));
             EditorGUI.EndDisabledGroup();
-            
+
             EditorGUILayout.Space();
             EditorExtension.DrawPropertyFieldSafe(this.tooltipPrefab, nameof(this.tooltipPrefab), new GUIContent("Tooltip Prefab"));
 
@@ -53,7 +53,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
                 EditorExtension.DrawPropertyFieldSafe(this.textSource, nameof(this.textSource), new GUIContent("Text Source"));
                 if (!this.targetObject.SetTextFromTextSource())
                     this.text.stringValue = null;
-                
+
                 EditorGUI.BeginDisabledGroup(true);
                 EditorExtension.DrawPropertyFieldSafe(this.text, nameof(this.text));
                 EditorGUI.EndDisabledGroup();

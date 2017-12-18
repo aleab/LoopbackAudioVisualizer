@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Aleab.LoopbackAudioVisualizer.UI
+namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 {
     // ReSharper disable once InconsistentNaming
     public class TMP_DropdownExtended : TMP_Dropdown

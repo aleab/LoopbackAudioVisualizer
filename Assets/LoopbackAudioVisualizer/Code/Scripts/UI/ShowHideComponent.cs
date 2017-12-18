@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Aleab.LoopbackAudioVisualizer.UI
+namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 {
     [RequireComponent(typeof(CanvasGroup))]
     public class ShowHideComponent : MonoBehaviour

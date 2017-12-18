@@ -1,5 +1,4 @@
-﻿using Aleab.LoopbackAudioVisualizer.Scripts;
-using CSCore;
+﻿using CSCore;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundIn;
 using CSCore.Streams;
@@ -8,7 +7,7 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer
+namespace Aleab.LoopbackAudioVisualizer.Scripts
 {
     /*
      * - convert audio data to format required by FFT (e.g. int -> float, separate L/R channels)

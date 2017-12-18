@@ -3,7 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer.UI
+namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 {
     public class Tooltip : ShowHideComponent
     {

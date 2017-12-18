@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Aleab.LoopbackAudioVisualizer
+namespace Aleab.LoopbackAudioVisualizer.Scripts
 {
     public class StartupController : MonoBehaviour
     {
