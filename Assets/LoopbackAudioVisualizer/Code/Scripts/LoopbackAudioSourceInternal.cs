@@ -81,15 +81,9 @@ namespace Aleab.LoopbackAudioVisualizer
 
         private void SampleSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
         {
-            if (e.Channels > 2 && e.Samples != null)
-            {
-                // TODO: Multi-channel (>2)
-            }
-            else
-            {
-                this.currentStereoBlock.left = e.Left;
-                this.currentStereoBlock.right = e.Right;
-            }
+            this._currentAudioBlock.left = e.Left;
+            this._currentAudioBlock.right = e.Right;
+            this._currentAudioBlock.samples = e.Channels > 2 && e.Samples != null ? e.Samples : new[] { e.Left, e.Right };
         }
 
         #endregion Event handlers

@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
 {
-    [CustomPropertyDrawer(typeof(StereoBlock))]
-    public class StereoBlockDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(AudioBlock))]
+    public class AudioBlockDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {

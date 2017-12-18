@@ -112,46 +112,52 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &191621027
+--- !u!1 &1029547502
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 191621029}
-  - component: {fileID: 191621028}
+  - component: {fileID: 1029547504}
+  - component: {fileID: 1029547503}
   m_Layer: 0
-  m_Name: LoopbackAudioSource
+  m_Name: AudioVisualizer01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &191621028
+--- !u!114 &1029547503
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 191621027}
+  m_GameObject: {fileID: 1029547502}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 61c76dde0fd44278a788aebc4712b72a, type: 3}
+  m_Script: {fileID: 11500000, guid: 8843e8c329a648c6b8abd39d23a0984e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loopbackDeviceID: 
---- !u!4 &191621029
+  useFilter: 1
+  sensitivity: 1
+  filterBase: 10
+  filterK: 0.3
+  filterMean: 0.7
+  filterStdDeviation: 0.75
+  filterLambda: 3
+--- !u!4 &1029547504
 Transform:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 191621027}
+  m_GameObject: {fileID: 1029547502}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1833835904
 GameObject:
@@ -227,5 +233,5 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -39,6 +39,22 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
 
         #region DrawRangeFieldSafe
 
+        public static bool DrawRangeFieldSafe(SerializedProperty property, string propertyName, GUIContent label, float maxLabelWidth = 137.0f, bool includeChildren = true, params GUILayoutOption[] options)
+        {
+            if (property != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (maxLabelWidth >= 0.0f)
+                    EditorGUILayout.LabelField(label, GUILayout.MaxWidth(maxLabelWidth));
+                else
+                    EditorGUILayout.LabelField(label);
+                DrawPropertyFieldSafe(property, propertyName, new GUIContent(string.Empty), includeChildren, options);
+                EditorGUILayout.EndHorizontal();
+                return true;
+            }
+            return DrawErrorLabel(propertyName, $"{label.text}\n{label.tooltip}");
+        }
+
         public static bool DrawRangeFieldSafe(SerializedProperty property, string propertyName, float min, float max, params GUILayoutOption[] options)
         {
             if (property != null)

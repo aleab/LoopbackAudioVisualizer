@@ -67,7 +67,7 @@ namespace Aleab.LoopbackAudioVisualizer
         private AudioEndpointVolumeLevels audioEndpointVolumeLevels = new AudioEndpointVolumeLevels();
 
         [SerializeField]
-        private StereoBlock currentStereoBlock = StereoBlock.Zero;
+        private AudioBlock _currentAudioBlock = AudioBlock.Zero;
 
 #pragma warning restore 0414
 
@@ -92,7 +92,7 @@ namespace Aleab.LoopbackAudioVisualizer
 
         public AudioEndpointVolumeLevels VolumeLevels { get { return this.audioEndpointVolumeLevels.Copy(); } }
 
-        public StereoBlock CurrentStereoBlock { get { return this.currentStereoBlock.Copy(); } }
+        public AudioBlock CurrentAudioBlock { get { return this._currentAudioBlock.Copy(); } }
 
         #endregion Public properties
 
