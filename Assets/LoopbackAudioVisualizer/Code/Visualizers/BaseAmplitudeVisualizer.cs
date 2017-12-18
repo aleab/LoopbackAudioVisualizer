@@ -44,7 +44,7 @@ namespace Aleab.LoopbackAudioVisualizer.Visualizers
         [Range(0.0f, 5.0f)]
         private float filterLambda = 1.5f;
 
-#pragma warning disable 0649
+#pragma warning restore 0649
 
         #endregion Inspector
 
