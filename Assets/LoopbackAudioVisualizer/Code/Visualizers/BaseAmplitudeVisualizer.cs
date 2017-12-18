@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using CSCore.Streams;
+using System;
 using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Visualizers
@@ -48,8 +48,6 @@ namespace Aleab.LoopbackAudioVisualizer.Visualizers
 
         #endregion Inspector
 
-        private Coroutine updateAudioSamplesCoroutine;
-
         protected LoopbackAudioSource loopbackAudioSource;
 
         protected AudioBlock filteredSamples = AudioBlock.Zero;
@@ -68,29 +66,39 @@ namespace Aleab.LoopbackAudioVisualizer.Visualizers
 
         protected virtual void Start()
         {
-            this.updateAudioSamplesCoroutine = this.StartCoroutine(this.UpdateAudioSamples());
+            this.loopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
         }
 
-        private IEnumerator UpdateAudioSamples()
+        private void OnDisable()
         {
-            Func<float, float> ClampFilter = x => Mathf.Clamp01(this.useFilter ? this.Filter(x * this.sensitivity, false) : x * this.sensitivity);
+            if (this.loopbackAudioSource != null)
+                this.loopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+        }
 
-            yield return null;
-            while (this.updateAudioSamplesCoroutine != null)
+        private void OnEnable()
+        {
+            if (this.loopbackAudioSource != null)
             {
-                var currentAudioBlock = this.loopbackAudioSource.CurrentAudioBlock.Abs();
-                this.filteredSamples.left = this.filteredSamples.samples[0] = ClampFilter(currentAudioBlock.left);
-                this.filteredSamples.right = this.filteredSamples.samples[1] = ClampFilter(currentAudioBlock.right);
-                for (int i = 2; i < this.filteredSamples.samples.Length; ++i)
-                    this.filteredSamples.samples[i] = ClampFilter(this.filteredSamples.samples[i]);
-
-                yield return new WaitForSeconds(0.05f);
+                this.loopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+                this.loopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
             }
         }
 
-        protected virtual void Destroy()
+        private void OnDestroy()
         {
-            this.updateAudioSamplesCoroutine = null;
+            if (this.loopbackAudioSource != null)
+                this.loopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+        }
+
+        protected virtual void LoopbackAudioSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
+        {
+            Func<float, float> ClampFilter = x => Mathf.Clamp01(this.useFilter ? this.Filter(x * this.sensitivity, false) : x * this.sensitivity);
+
+            var currentAudioBlock = this.loopbackAudioSource.CurrentAudioBlock.Abs();
+            this.filteredSamples.left = this.filteredSamples.samples[0] = ClampFilter(currentAudioBlock.left);
+            this.filteredSamples.right = this.filteredSamples.samples[1] = ClampFilter(currentAudioBlock.right);
+            for (int i = 2; i < this.filteredSamples.samples.Length; ++i)
+                this.filteredSamples.samples[i] = ClampFilter(this.filteredSamples.samples[i]);
         }
 
         protected float GaussianFilter(float x, float mean, float standardDeviation) => 1.0f / (Mathf.Sqrt(2 * Mathf.PI) * standardDeviation) * Mathf.Pow(this.filterBase, -Mathf.Pow(x - mean, 2) / (2 * standardDeviation * standardDeviation));
