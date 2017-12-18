@@ -9,11 +9,13 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
     public class LoopbackAudioSourceEditor : Editor
     {
         private SerializedProperty loopbackDeviceName;
+        private SerializedProperty audioEndpointVolumeLevels;
         private SerializedProperty currentStereoBlock;
 
         private void OnEnable()
         {
             this.loopbackDeviceName = this.serializedObject.FindProperty("loopbackDeviceName");
+            this.audioEndpointVolumeLevels = this.serializedObject.FindProperty("audioEndpointVolumeLevels");
             this.currentStereoBlock = this.serializedObject.FindProperty("currentStereoBlock");
         }
 
@@ -28,6 +30,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
             EditorGUILayout.Space();
             EditorGUI.BeginDisabledGroup(true);
             EditorExtension.DrawPropertyFieldSafe(this.loopbackDeviceName, nameof(this.loopbackDeviceName), new GUIContent("Loopback Device"));
+            EditorExtension.DrawPropertyFieldSafe(this.audioEndpointVolumeLevels, nameof(this.audioEndpointVolumeLevels), new GUIContent("Volume"));
             EditorExtension.DrawPropertyFieldSafe(this.currentStereoBlock, nameof(this.currentStereoBlock), new GUIContent("Current Stereo Block"));
             EditorGUI.EndDisabledGroup();
 

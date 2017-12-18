@@ -16,9 +16,15 @@ namespace Aleab.LoopbackAudioVisualizer
 
         private MMDevice _loopbackDevice;
 
+        private AudioEndpointVolume audioEndpointVolume;
+
         private bool initialized;
 
         private Coroutine listeningCoroutine;
+
+        private Coroutine updateVolumeCoroutine;
+
+        #region Capture
 
         /// <summary>
         /// The WASAPI loopback capture.
@@ -40,6 +46,8 @@ namespace Aleab.LoopbackAudioVisualizer
         /// </summary>
         private IWaveSource sampledWaveSource;
 
+        #endregion Capture
+
         #endregion Private fields
 
         #region Inspector fields
@@ -51,6 +59,9 @@ namespace Aleab.LoopbackAudioVisualizer
         private string loopbackDeviceName;
 
         [Space(5.0f)]
+        [SerializeField]
+        private AudioEndpointVolumeLevels audioEndpointVolumeLevels = new AudioEndpointVolumeLevels();
+
         [SerializeField]
         private StereoBlock currentStereoBlock = StereoBlock.Zero;
 
@@ -75,10 +86,9 @@ namespace Aleab.LoopbackAudioVisualizer
 
         public bool IsListening { get { return this.listeningCoroutine != null; } }
 
-        public StereoBlock CurrentStereoBlock
-        {
-            get { return this.currentStereoBlock.Copy(); }
-        }
+        public AudioEndpointVolumeLevels VolumeLevels { get { return this.audioEndpointVolumeLevels.Copy(); } }
+
+        public StereoBlock CurrentStereoBlock { get { return this.currentStereoBlock.Copy(); } }
 
         #endregion Public properties
 
@@ -90,6 +100,7 @@ namespace Aleab.LoopbackAudioVisualizer
         private void Start()
         {
             UIController.SettingsPanel.LoopbackDeviceSelected += this.SettingsPanel_LoopbackDeviceSelected;
+            this.updateVolumeCoroutine = this.StartCoroutine(this.UpdateVolume());
         }
 
         #region Init
@@ -99,6 +110,7 @@ namespace Aleab.LoopbackAudioVisualizer
             Debug.Log($"Initializing {nameof(LoopbackAudioSource)} ({this.gameObject.name})...");
 
             this.LoopbackDevice = loopbackDevice;
+            this.InitAudioEndpointVolume(loopbackDevice);
 
             this.initialized = false;
 
@@ -131,6 +143,12 @@ namespace Aleab.LoopbackAudioVisualizer
 
                 this.StartListening();
             }
+        }
+
+        private void InitAudioEndpointVolume(MMDevice loopbackDevice)
+        {
+            this.DisposeAudioEndpointVolume();
+            this.audioEndpointVolume = AudioEndpointVolume.FromDevice(loopbackDevice);
         }
 
         private void InitWasapiLoopbackCapture(MMDevice loopbackDevice)
@@ -192,6 +210,17 @@ namespace Aleab.LoopbackAudioVisualizer
             }
         }
 
+        private IEnumerator UpdateVolume()
+        {
+            yield return null;
+            while (this.updateVolumeCoroutine != null)
+            {
+                if (this.audioEndpointVolume != null)
+                    this.audioEndpointVolumeLevels?.Update(this.audioEndpointVolume);
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+
         #region Event handlers
 
         private void StartupController_StartupCompleted(object sender, EventArgs e)
@@ -247,6 +276,13 @@ namespace Aleab.LoopbackAudioVisualizer
         {
             this.StopListening();
             this.ReleaseAudioSources();
+            this.DisposeAudioEndpointVolume();
+        }
+
+        private void DisposeAudioEndpointVolume()
+        {
+            if (this.audioEndpointVolume != null && !this.audioEndpointVolume.IsDisposed)
+                this.audioEndpointVolume.Dispose();
         }
 
         private void ReleaseAudioSources()
