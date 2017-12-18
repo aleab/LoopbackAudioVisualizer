@@ -1,11 +1,11 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Scripts;
-using Aleab.LoopbackAudioVisualizer.Unity;
+using CSCore;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundIn;
+using CSCore.Streams;
 using System;
 using System.Collections;
 using System.Linq;
-using CSCore.Streams;
 using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer
@@ -26,9 +26,19 @@ namespace Aleab.LoopbackAudioVisualizer
         private WasapiLoopbackCapture wasapiLoopbackCapture;
 
         /// <summary>
-        /// The sound source.
+        /// The sound source (IWaveSource) that provides raw bytes.
         /// </summary>
-        private SoundInSource soundIn;
+        private SoundInSource soundInSource;
+
+        /// <summary>
+        /// The sound source that provides audio samples.
+        /// </summary>
+        private SingleBlockNotificationStream sampleSource;
+
+        /// <summary>
+        /// A WaveSource converted from the current SampleSource
+        /// </summary>
+        private IWaveSource sampledWaveSource;
 
         #endregion Private fields
 
@@ -37,9 +47,12 @@ namespace Aleab.LoopbackAudioVisualizer
 #pragma warning disable 0414
 
         [Space(10.0f)]
-        [ReadOnly]
         [SerializeField]
         private string loopbackDeviceName;
+
+        [Space(5.0f)]
+        [SerializeField]
+        private StereoBlock currentStereoBlock = StereoBlock.Zero;
 
 #pragma warning restore 0414
 
@@ -62,6 +75,11 @@ namespace Aleab.LoopbackAudioVisualizer
 
         public bool IsListening { get { return this.listeningCoroutine != null; } }
 
+        public StereoBlock CurrentStereoBlock
+        {
+            get { return this.currentStereoBlock.Copy(); }
+        }
+
         #endregion Public properties
 
         private void Awake()
@@ -74,34 +92,18 @@ namespace Aleab.LoopbackAudioVisualizer
             UIController.SettingsPanel.LoopbackDeviceSelected += this.SettingsPanel_LoopbackDeviceSelected;
         }
 
+        #region Init
+
         public void Init(MMDevice loopbackDevice)
         {
             Debug.Log($"Initializing {nameof(LoopbackAudioSource)} ({this.gameObject.name})...");
 
             this.LoopbackDevice = loopbackDevice;
 
-            bool shouldRestartListening = this.IsListening;
             this.initialized = false;
 
-            // Release the current wasapiLoopbackCapture
-            if (this.wasapiLoopbackCapture != null)
-            {
-                this.wasapiLoopbackCapture.Stop();
-                this.wasapiLoopbackCapture.Stopped -= this.WasapiLoopbackCapture_Stopped;
-                this.wasapiLoopbackCapture.Dispose();
-                this.wasapiLoopbackCapture = null;
-            }
-
-            // Release the current soundIn
-            if (this.soundIn != null)
-            {
-                this.soundIn.DataAvailable -= this.SoundIn_DataAvailable;
-                this.soundIn.Dispose();
-                this.soundIn = null;
-            }
-
-            // Stop the current listening coroutine
             this.StopListening();
+            this.ReleaseAudioSources();
 
             if (loopbackDevice == null)
             {
@@ -120,20 +122,44 @@ namespace Aleab.LoopbackAudioVisualizer
             }
             else
             {
-                this.wasapiLoopbackCapture = new WasapiLoopbackCapture { Device = loopbackDevice };
-                this.wasapiLoopbackCapture.Stopped += this.WasapiLoopbackCapture_Stopped;
-                this.wasapiLoopbackCapture.Initialize();
-
-                this.soundIn = new SoundInSource(this.wasapiLoopbackCapture, (int)this.wasapiLoopbackCapture.WaveFormat.MillisecondsToBytes(Preferences.CaptureBufferMilliseconds));
-                this.soundIn.DataAvailable += this.SoundIn_DataAvailable;
+                this.InitWasapiLoopbackCapture(loopbackDevice);
+                this.SetupSoundInSource();
+                this.SetupSampleSource();
 
                 this.initialized = true;
                 Debug.Log($"Initialized {nameof(LoopbackAudioSource)} ({this.gameObject.name}).");
 
-                if (shouldRestartListening)
-                    this.StartListening();
+                this.StartListening();
             }
         }
+
+        private void InitWasapiLoopbackCapture(MMDevice loopbackDevice)
+        {
+            this.DisposeWasapiLoopbackCapture();
+            this.wasapiLoopbackCapture = new WasapiLoopbackCapture { Device = loopbackDevice };
+            this.wasapiLoopbackCapture.Stopped += this.WasapiLoopbackCapture_Stopped;
+            this.wasapiLoopbackCapture.Initialize();
+        }
+
+        private void SetupSoundInSource()
+        {
+            this.DisposeSoundInSource();
+            this.soundInSource = new SoundInSource(this.wasapiLoopbackCapture, (int)this.wasapiLoopbackCapture.WaveFormat.MillisecondsToBytes(Preferences.CaptureBufferMilliseconds));
+            this.soundInSource.DataAvailable += this.SoundInSource_DataAvailable;
+        }
+
+        private void SetupSampleSource()
+        {
+            this.DisposeSampleSource();
+            ISampleSource sampleSource = this.soundInSource.ToSampleSource();
+            this.sampleSource = new SingleBlockNotificationStream(sampleSource);
+            this.sampleSource.SingleBlockRead += this.SampleSource_SingleBlockRead;
+
+            this.DisposeSampledWaveSource();
+            this.sampledWaveSource = this.sampleSource.ToWaveSource(16);
+        }
+
+        #endregion Init
 
         public void StartListening()
         {
@@ -151,7 +177,7 @@ namespace Aleab.LoopbackAudioVisualizer
 
             this.wasapiLoopbackCapture.Start();
 
-            Debug.Log($"{nameof(LoopbackAudioSource)} ({this.gameObject.name}) started listening on device {this.LoopbackDevice.DeviceID} ({this.LoopbackDevice.FriendlyName}).");
+            Debug.Log($"{nameof(LoopbackAudioSource)} ({this.gameObject.name}) started listening on device \"{this.LoopbackDevice.DeviceID}\" ({this.LoopbackDevice.FriendlyName}).");
         }
 
         public void StopListening()
@@ -186,24 +212,94 @@ namespace Aleab.LoopbackAudioVisualizer
             this.Init(e.Device);
         }
 
-        private void SoundIn_DataAvailable(object sender, DataAvailableEventArgs e)
-        {
-            // TODO
-        }
-
         private void WasapiLoopbackCapture_Stopped(object sender, RecordingStoppedEventArgs e)
         {
-            // TODO
+            // TODO: WasapiLoopbackCapture_Stopped
+        }
+
+        private void SoundInSource_DataAvailable(object sender, DataAvailableEventArgs e)
+        {
+            // We need to read from our SoundInSource, otherwise SingleBlockRead is never called
+            byte[] buffer = new byte[this.sampledWaveSource.WaveFormat.BytesPerSecond / 2];
+            while (this.sampledWaveSource.Read(buffer, 0, buffer.Length) > 0)
+            {
+            }
+        }
+
+        private void SampleSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
+        {
+            if (e.Channels > 2 && e.Samples != null)
+            {
+                // TODO: Multi-channel (>2)
+            }
+            else
+            {
+                this.currentStereoBlock.left = e.Left;
+                this.currentStereoBlock.right = e.Right;
+            }
         }
 
         #endregion Event handlers
 
+        #region Dispose
+
         public void Dispose()
         {
-            this.wasapiLoopbackCapture?.Dispose();
+            this.StopListening();
+            this.ReleaseAudioSources();
         }
 
-        public void OnDestroy()
+        private void ReleaseAudioSources()
+        {
+            this.DisposeWasapiLoopbackCapture();
+            this.DisposeSoundInSource();
+            this.DisposeSampleSource();
+            this.DisposeSampledWaveSource();
+        }
+
+        private void DisposeWasapiLoopbackCapture()
+        {
+            if (this.wasapiLoopbackCapture != null)
+            {
+                this.wasapiLoopbackCapture.Stop();
+                this.wasapiLoopbackCapture.Stopped -= this.WasapiLoopbackCapture_Stopped;
+                this.wasapiLoopbackCapture.Dispose();
+                this.wasapiLoopbackCapture = null;
+            }
+        }
+
+        private void DisposeSoundInSource()
+        {
+            if (this.soundInSource != null)
+            {
+                this.soundInSource.DataAvailable -= this.SoundInSource_DataAvailable;
+                this.soundInSource.Dispose();
+                this.soundInSource = null;
+            }
+        }
+
+        private void DisposeSampleSource()
+        {
+            if (this.sampleSource != null)
+            {
+                this.sampleSource.SingleBlockRead -= this.SampleSource_SingleBlockRead;
+                this.sampleSource.Dispose();
+                this.sampleSource = null;
+            }
+        }
+
+        private void DisposeSampledWaveSource()
+        {
+            if (this.sampledWaveSource != null)
+            {
+                this.sampledWaveSource.Dispose();
+                this.sampledWaveSource = null;
+            }
+        }
+
+        #endregion Dispose
+
+        private void OnDestroy()
         {
             this.Dispose();
         }
