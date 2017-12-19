@@ -87,7 +87,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
 
         #region DrawCompactArray
 
-        public static bool DrawCompactArray(SerializedProperty property, string propertyName, GUIContent label, ref bool foldout, int maxLineItems = 3, bool includeChildren = true, params GUILayoutOption[] options)
+        public static bool DrawCompactArray(SerializedProperty property, string propertyName, GUIContent label, int maxLineItems = 3, bool includeChildren = true, params GUILayoutOption[] options)
         {
             if (property != null)
             {
@@ -98,7 +98,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
 
                     // Foldout + Size or Label if array length <= 0
                     EditorGUILayout.BeginHorizontal();
-                    foldout = EditorGUILayout.Foldout(foldout, label, true, property.arraySize > 0 ? EditorStyles.foldout : Styles.FoldoutNoArrow);
+                    property.isExpanded = EditorGUILayout.Foldout(property.isExpanded, label, true, property.arraySize > 0 ? EditorStyles.foldout : Styles.FoldoutNoArrow);
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(new GUIContent("Size"), EditorStyles.label, CalcMinMaxWidth(new GUIContent("Size"), EditorStyles.label));
                     property.arraySize = Mathf.Abs(EditorGUILayout.IntField(new GUIContent(string.Empty), property.arraySize, GUILayout.MaxWidth(48.0f)));
@@ -106,7 +106,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
                     EditorGUILayout.EndHorizontal();
 
                     // Draw array items if foldout is expanded and array length > 0
-                    if (foldout && property.arraySize > 0)
+                    if (property.isExpanded && property.arraySize > 0)
                     {
                         int i = 0;
                         SerializedProperty emptyProperty = property.GetArrayElementAtIndex(0).Copy();
