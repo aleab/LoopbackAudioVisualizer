@@ -12,7 +12,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         private FftSize fftSize = FftSize.Fft512;
 
         [SerializeField]
-        [ReadOnly]
         private float[] fftBuffer;
 
         protected SimpleSpectrumProvider spectrumProvider;
@@ -21,8 +20,13 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         protected virtual void Start()
         {
-            AudioSourceController.LoopbackAudioSource.DeviceInitialized -= this.LoopbackAudioSource_DeviceInitialized;
-            AudioSourceController.LoopbackAudioSource.DeviceInitialized += this.LoopbackAudioSource_DeviceInitialized;
+            if (AudioSourceController.LoopbackAudioSource != null)
+            {
+                AudioSourceController.LoopbackAudioSource.DeviceInitialized -= this.LoopbackAudioSource_DeviceInitialized;
+                AudioSourceController.LoopbackAudioSource.DeviceInitialized += this.LoopbackAudioSource_DeviceInitialized;
+            }
+            else
+                Debug.LogError($"{nameof(AudioSourceController)}.{nameof(AudioSourceController.LoopbackAudioSource)} is null!");
         }
 
         private IEnumerator UpdateFftData()
@@ -50,11 +54,14 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         private void OnEnable()
         {
-            AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
-            AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
+            if (AudioSourceController.LoopbackAudioSource != null)
+            {
+                AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+                AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
 
-            AudioSourceController.LoopbackAudioSource.DeviceInitialized -= this.LoopbackAudioSource_DeviceInitialized;
-            AudioSourceController.LoopbackAudioSource.DeviceInitialized += this.LoopbackAudioSource_DeviceInitialized;
+                AudioSourceController.LoopbackAudioSource.DeviceInitialized -= this.LoopbackAudioSource_DeviceInitialized;
+                AudioSourceController.LoopbackAudioSource.DeviceInitialized += this.LoopbackAudioSource_DeviceInitialized;
+            }
         }
 
         private void OnDestroy()
@@ -68,6 +75,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         private void LoopbackAudioSource_DeviceInitialized(object sender, Events.MMDeviceEventArgs e)
         {
+            // If the device changes, we need to stop gathering FFT data and re-create the spectrum provider using the new device's format.
             AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
             if (this.updateFftDataCoroutine != null)
             {
