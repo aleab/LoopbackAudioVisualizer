@@ -30,7 +30,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 
         #region Events
 
-        public event EventHandler<MMDeviceSelectedEventArgs> LoopbackDeviceSelected;
+        public event EventHandler<MMDeviceEventArgs> LoopbackDeviceSelected;
 
         #endregion Events
 
@@ -91,7 +91,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 
         private void OnLoopbackDeviceSelected(MMDevice device)
         {
-            this.LoopbackDeviceSelected?.Invoke(this, new MMDeviceSelectedEventArgs(device));
+            this.LoopbackDeviceSelected?.Invoke(this, new MMDeviceEventArgs(device));
         }
 
         #endregion Private event handlers

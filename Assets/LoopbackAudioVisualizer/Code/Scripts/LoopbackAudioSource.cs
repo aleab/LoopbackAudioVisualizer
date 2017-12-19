@@ -1,4 +1,5 @@
-﻿using CSCore;
+﻿using Aleab.LoopbackAudioVisualizer.Events;
+using CSCore;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundIn;
 using CSCore.Streams;
@@ -67,7 +68,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         private AudioEndpointVolumeLevels audioEndpointVolumeLevels = new AudioEndpointVolumeLevels();
 
         [SerializeField]
-        private AudioBlock _currentAudioBlock = AudioBlock.Zero;
+        private AudioBlock currentAudioBlock = AudioBlock.Zero;
 
 #pragma warning restore 0414
 
@@ -92,9 +93,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         public AudioEndpointVolumeLevels VolumeLevels { get { return this.audioEndpointVolumeLevels.Copy(); } }
 
-        public AudioBlock CurrentAudioBlock { get { return this._currentAudioBlock.Copy(); } }
+        public AudioBlock CurrentAudioBlock { get { return this.currentAudioBlock.Copy(); } }
 
         #endregion Public properties
+
+        public event EventHandler<MMDeviceEventArgs> DeviceInitialized;
 
         public event EventHandler<SingleBlockReadEventArgs> SingleBlockRead;
 
@@ -114,7 +117,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             Debug.Log($"Initializing {nameof(LoopbackAudioSource)} ({this.gameObject.name})...");
 
             this.LoopbackDevice = loopbackDevice;
-            this.InitAudioEndpointVolume(loopbackDevice);
 
             this.StopListening();
             this.ReleaseAudioSources();
@@ -136,11 +138,14 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             }
             else
             {
+                this.InitAudioEndpointVolume(loopbackDevice);
+
                 this.InitWasapiLoopbackCapture(loopbackDevice);
                 this.SetupSoundInSource();
                 this.SetupSampleSource();
 
                 Debug.Log($"Initialized {nameof(LoopbackAudioSource)} ({this.gameObject.name}).");
+                this.DeviceInitialized?.Invoke(this, new MMDeviceEventArgs(loopbackDevice));
 
                 this.StartListening();
             }
@@ -235,7 +240,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             }
         }
 
-        private void SettingsPanel_LoopbackDeviceSelected(object sender, Events.MMDeviceSelectedEventArgs e)
+        private void SettingsPanel_LoopbackDeviceSelected(object sender, MMDeviceEventArgs e)
         {
             this.Init(e.Device);
         }
@@ -256,9 +261,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private void SampleSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
         {
-            this._currentAudioBlock.left = e.Left;
-            this._currentAudioBlock.right = e.Right;
-            this._currentAudioBlock.samples = e.Channels > 2 && e.Samples != null ? e.Samples : new[] { e.Left, e.Right };
+            this.currentAudioBlock.left = e.Left;
+            this.currentAudioBlock.right = e.Right;
+            this.currentAudioBlock.samples = e.Channels > 2 && e.Samples != null ? e.Samples : new[] { e.Left, e.Right };
 
             this.SingleBlockRead?.Invoke(this, e);
         }

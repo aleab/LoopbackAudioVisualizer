@@ -6,7 +6,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 {
     /// <summary>
     /// Base class for amplitude visualizers.
-    /// The <code>filteredSamples</code> variable contains the latest audio samples captured by <see cref="LoopbackAudioSource"/> and filtered with the <see cref="Filter"/> function.
+    /// The <code>filteredSamples</code> variable contains the latest audio samples captured by <see cref="AudioSourceController.LoopbackAudioSource"/> and filtered with the <see cref="Filter"/> function.
     /// </summary>
     public class BaseAmplitudeVisualizer : MonoBehaviour
     {
@@ -48,53 +48,40 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         #endregion Inspector
 
-        protected LoopbackAudioSource loopbackAudioSource;
-
         protected AudioBlock filteredSamples = AudioBlock.Zero;
 
         public int Channels { get { return this.filteredSamples.samples?.Length ?? -1; } }
 
-        protected virtual void Awake()
-        {
-            this.loopbackAudioSource = FindObjectOfType<LoopbackAudioSource>();
-            if (this.loopbackAudioSource == null)
-            {
-                Debug.LogError($"[{nameof(BaseAmplitudeVisualizer)}] Couldn't find LoopbackAudioSource.");
-                Destroy(this.gameObject);
-            }
-        }
-
         protected virtual void Start()
         {
-            this.loopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
+            AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+            AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
         }
 
         private void OnDisable()
         {
-            if (this.loopbackAudioSource != null)
-                this.loopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+            if (AudioSourceController.LoopbackAudioSource != null)
+                AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
         }
 
         private void OnEnable()
         {
-            if (this.loopbackAudioSource != null)
-            {
-                this.loopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
-                this.loopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
-            }
+            AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+            AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
         }
 
         private void OnDestroy()
         {
-            if (this.loopbackAudioSource != null)
-                this.loopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+            if (AudioSourceController.LoopbackAudioSource != null)
+                AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
         }
 
         protected virtual void LoopbackAudioSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
         {
             Func<float, float> ClampFilter = x => Mathf.Clamp01(this.useFilter ? this.Filter(x * this.sensitivity, false) : x * this.sensitivity);
 
-            var currentAudioBlock = this.loopbackAudioSource.CurrentAudioBlock.Abs();
+            var currentAudioBlock = AudioSourceController.LoopbackAudioSource.CurrentAudioBlock.Abs();
+            this.filteredSamples.samples = currentAudioBlock.samples;
             this.filteredSamples.left = this.filteredSamples.samples[0] = ClampFilter(currentAudioBlock.left);
             this.filteredSamples.right = this.filteredSamples.samples[1] = ClampFilter(currentAudioBlock.right);
             for (int i = 2; i < this.filteredSamples.samples.Length; ++i)
