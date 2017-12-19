@@ -55,7 +55,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
             int selectedIndex = 0;
             if (!string.IsNullOrWhiteSpace(Preferences.LoopbackDeviceID))
             {
-                int preferredDeviceIndex = this.devices.FindIndex(device => device.DeviceID == Preferences.LoopbackDeviceID);
+                int preferredDeviceIndex = this.devices.FindIndex(device => device?.DeviceID == Preferences.LoopbackDeviceID);
                 selectedIndex = preferredDeviceIndex > 0 ? preferredDeviceIndex : 0;
             }
             this.dropdownLoopbackDevice.value = selectedIndex;
