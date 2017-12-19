@@ -1,5 +1,4 @@
-﻿using Aleab.LoopbackAudioVisualizer.Unity;
-using CSCore.DSP;
+﻿using CSCore.DSP;
 using CSCore.Streams;
 using System.Collections;
 using UnityEngine;
@@ -94,5 +93,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         {
             this.spectrumProvider.Add(e.Left, e.Right);
         }
+
+#if UNITY_EDITOR
+        public bool fftBufferFoldout;
+#endif
     }
 }

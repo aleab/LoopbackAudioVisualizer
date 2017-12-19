@@ -9,11 +9,15 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
     [CustomEditor(typeof(BaseSpectrumVisualizer))]
     public class BaseSpectrumVisualizerEditor : Editor
     {
+        private BaseSpectrumVisualizer targetObject;
+
         private SerializedProperty fftSize;
         private SerializedProperty fftBuffer;
 
         private void OnEnable()
         {
+            this.targetObject = this.target as BaseSpectrumVisualizer;
+
             this.fftSize = this.serializedObject.FindProperty("fftSize");
             this.fftBuffer = this.serializedObject.FindProperty("fftBuffer");
         }
@@ -37,7 +41,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
                 EditorExtension.DrawPropertyFieldSafe(this.fftSize, nameof(this.fftSize), new GUIContent("FFT Size"));
 
             EditorGUI.BeginDisabledGroup(true);
-            EditorExtension.DrawPropertyFieldSafe(this.fftBuffer, nameof(this.fftBuffer), new GUIContent("FFT Buffer"));
+            EditorExtension.DrawCompactArray(this.fftBuffer, nameof(this.fftBuffer), new GUIContent("FFT Buffer"), ref this.targetObject.fftBufferFoldout, 4);
             EditorGUI.EndDisabledGroup();
 
             this.serializedObject.ApplyModifiedProperties();
