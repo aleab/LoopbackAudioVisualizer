@@ -2,6 +2,7 @@
 
 using Aleab.LoopbackAudioVisualizer.Scripts.Visualizers;
 using System;
+using Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions;
 using UnityEditor;
 using UnityEngine;
 

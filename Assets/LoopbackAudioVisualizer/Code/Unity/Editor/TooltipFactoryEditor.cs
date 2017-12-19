@@ -1,4 +1,7 @@
-﻿using Aleab.LoopbackAudioVisualizer.Scripts;
+﻿#if UNITY_EDITOR
+
+using Aleab.LoopbackAudioVisualizer.Scripts;
+using Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions;
 using UnityEditor;
 using UnityEngine;
 
@@ -29,3 +32,5 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
         }
     }
 }
+
+#endif

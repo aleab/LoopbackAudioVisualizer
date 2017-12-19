@@ -4,23 +4,10 @@ using Aleab.LoopbackAudioVisualizer.Helpers;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
+namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
 {
     public static class EditorExtension
     {
-        public static readonly GUIStyle FoldoutNoArrow = new GUIStyle(EditorStyles.label)
-        {
-            border = new RectOffset(EditorStyles.foldout.border.left, EditorStyles.foldout.border.right, EditorStyles.foldout.border.top, EditorStyles.foldout.border.bottom),
-            margin = new RectOffset(EditorStyles.foldout.margin.left, EditorStyles.foldout.margin.right, EditorStyles.foldout.margin.top, EditorStyles.foldout.margin.bottom),
-            padding = new RectOffset(EditorStyles.foldout.padding.left, EditorStyles.foldout.padding.right, EditorStyles.foldout.padding.top, EditorStyles.foldout.padding.bottom)
-        };
-
-        public static readonly GUIStyle RightAlignedLabel = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleRight };
-
-        public static readonly GUIStyle IndentedMiniLabel = new GUIStyle(EditorStyles.miniLabel) { padding = { left = 12 } };
-
-        public static readonly GUIStyle IndentedRightAlignedMiniLabel = new GUIStyle(IndentedMiniLabel) { alignment = TextAnchor.MiddleRight };
-
         public static GUILayoutOption[] CalcMinMaxWidth(GUIContent content, GUIStyle style)
         {
             float minWidth, maxWidth;
@@ -111,7 +98,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
 
                     // Foldout + Size or Label if array length <= 0
                     EditorGUILayout.BeginHorizontal();
-                    foldout = EditorGUILayout.Foldout(foldout, label, true, property.arraySize > 0 ? EditorStyles.foldout : FoldoutNoArrow);
+                    foldout = EditorGUILayout.Foldout(foldout, label, true, property.arraySize > 0 ? EditorStyles.foldout : Styles.FoldoutNoArrow);
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField(new GUIContent("Size"), EditorStyles.label, CalcMinMaxWidth(new GUIContent("Size"), EditorStyles.label));
                     property.arraySize = Mathf.Abs(EditorGUILayout.IntField(new GUIContent(string.Empty), property.arraySize, GUILayout.MaxWidth(48.0f)));
@@ -126,14 +113,14 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
                         emptyProperty.ClearValues();
 
                         float minLineLabelWidth, maxLineLabelWidth;
-                        IndentedRightAlignedMiniLabel.CalcMinMaxWidth(new GUIContent((property.arraySize - 1).ToString()), out minLineLabelWidth, out maxLineLabelWidth);
-                        
+                        Styles.IndentedRightAlignedMiniLabel.CalcMinMaxWidth(new GUIContent((property.arraySize - 1).ToString()), out minLineLabelWidth, out maxLineLabelWidth);
+
                         EditorGUILayout.BeginVertical();
 
                         while (i < property.arraySize)
                         {
                             EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(new GUIContent(i.ToString()), IndentedRightAlignedMiniLabel, GUILayout.MinWidth(minLineLabelWidth), GUILayout.MaxWidth(maxLineLabelWidth));
+                            EditorGUILayout.LabelField(new GUIContent(i.ToString()), Styles.IndentedRightAlignedMiniLabel, GUILayout.MinWidth(minLineLabelWidth), GUILayout.MaxWidth(maxLineLabelWidth));
                             for (int lineIndex = 0; lineIndex < maxLineItems; ++lineIndex, ++i)
                             {
                                 if (i < property.arraySize)
