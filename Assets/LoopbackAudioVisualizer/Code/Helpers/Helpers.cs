@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -115,5 +116,18 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
             Debug.unityLogger.logEnabled = true;
             Debug.unityLogger.logHandler = logHandler;
         }
+
+#if UNITY_EDITOR
+
+        public static void ClearConsole()
+        {
+            var logEntries = typeof(Editor).Assembly.GetType("UnityEditor.LogEntries");
+            if (logEntries != null)
+                logEntries.GetMethod("Clear", BindingFlags.Static | BindingFlags.Public)?.Invoke(null, null);
+            else
+                Debug.LogWarning($"[{nameof(Helpers)}.{nameof(ClearConsole)}] Couldn't find LogEntries!");
+        }
+
+#endif
     }
 }
