@@ -3,11 +3,11 @@ using System;
 
 namespace Aleab.LoopbackAudioVisualizer.Events
 {
-    public class MMDeviceSelectedEventArgs : EventArgs
+    public class MMDeviceEventArgs : EventArgs
     {
         public MMDevice Device { get; }
 
-        public MMDeviceSelectedEventArgs(MMDevice device)
+        public MMDeviceEventArgs(MMDevice device)
         {
             this.Device = device;
         }

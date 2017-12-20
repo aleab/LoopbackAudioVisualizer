@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer
+namespace Aleab.LoopbackAudioVisualizer.Scripts
 {
     public class UnityInspectorOnly : MonoBehaviour
     {

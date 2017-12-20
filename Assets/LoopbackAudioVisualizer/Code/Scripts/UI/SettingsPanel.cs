@@ -7,7 +7,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer.UI
+namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 {
     public class SettingsPanel : ShowHideComponent
     {
@@ -15,7 +15,6 @@ namespace Aleab.LoopbackAudioVisualizer.UI
         /// List of devices used to populate the dropdown's options.
         /// </summary>
         private List<MMDevice> devices = new List<MMDevice>();
-
 
         #region Inspector
 
@@ -31,7 +30,7 @@ namespace Aleab.LoopbackAudioVisualizer.UI
 
         #region Events
 
-        public event EventHandler<MMDeviceSelectedEventArgs> LoopbackDeviceSelected;
+        public event EventHandler<MMDeviceEventArgs> LoopbackDeviceSelected;
 
         #endregion Events
 
@@ -56,7 +55,7 @@ namespace Aleab.LoopbackAudioVisualizer.UI
             int selectedIndex = 0;
             if (!string.IsNullOrWhiteSpace(Preferences.LoopbackDeviceID))
             {
-                int preferredDeviceIndex = this.devices.FindIndex(device => device.DeviceID == Preferences.LoopbackDeviceID);
+                int preferredDeviceIndex = this.devices.FindIndex(device => device?.DeviceID == Preferences.LoopbackDeviceID);
                 selectedIndex = preferredDeviceIndex > 0 ? preferredDeviceIndex : 0;
             }
             this.dropdownLoopbackDevice.value = selectedIndex;
@@ -92,7 +91,7 @@ namespace Aleab.LoopbackAudioVisualizer.UI
 
         private void OnLoopbackDeviceSelected(MMDevice device)
         {
-            this.LoopbackDeviceSelected?.Invoke(this, new MMDeviceSelectedEventArgs(device));
+            this.LoopbackDeviceSelected?.Invoke(this, new MMDeviceEventArgs(device));
         }
 
         #endregion Private event handlers

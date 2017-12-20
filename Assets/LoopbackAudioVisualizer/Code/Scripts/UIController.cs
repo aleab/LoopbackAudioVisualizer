@@ -1,5 +1,5 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Helpers;
-using Aleab.LoopbackAudioVisualizer.UI;
+using Aleab.LoopbackAudioVisualizer.Scripts.UI;
 using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts
