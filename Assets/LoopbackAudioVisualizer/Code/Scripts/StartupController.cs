@@ -1,5 +1,6 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Helpers;
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,6 +29,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         #endregion Singleton
 
+        private Camera mainCamera;
+
         public event EventHandler StartupCompleted;
 
         private void Awake()
@@ -41,6 +44,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             }
 
             DontDestroyOnLoad(this.gameObject);
+
+            this.mainCamera = FindObjectsOfType<Camera>().Single(camera => camera.CompareTag("MainCamera"));
         }
 
         private void Start()
@@ -93,6 +98,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private void SceneManager_SceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
+            if (this.mainCamera != null)
+                this.mainCamera.gameObject.SetActive(false);
             SceneManager.SetActiveScene(scene);
         }
 

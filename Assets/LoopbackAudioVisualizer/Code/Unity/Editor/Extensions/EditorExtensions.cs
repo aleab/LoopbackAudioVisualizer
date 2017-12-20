@@ -146,6 +146,19 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
 
         #endregion DrawCompactArray
 
+        public static bool DrawTogglePropertyField(SerializedProperty property, GUIContent label, bool includeChildren = true, params GUILayoutOption[] options)
+        {
+            EditorGUILayout.BeginHorizontal();
+            property.isExpanded = EditorGUILayout.ToggleLeft(GUIContent.none, property.isExpanded, GUILayout.MaxWidth(12.0f));
+            EditorGUILayout.LabelField(label, GUILayout.MaxWidth(123.0f));
+            EditorGUI.BeginDisabledGroup(!property.isExpanded);
+            EditorGUILayout.PropertyField(property, GUIContent.none, includeChildren, options);
+            EditorGUI.EndDisabledGroup();
+            EditorGUILayout.EndHorizontal();
+
+            return property.isExpanded;
+        }
+
         private static bool DrawErrorLabel(string propertyName, string tooltip = "")
         {
             GUIContent content = new GUIContent()

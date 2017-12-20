@@ -13,7 +13,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
         private SerializedProperty fftSize;
         private SerializedProperty fftBuffer;
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             this.fftSize = this.serializedObject.FindProperty("fftSize");
             this.fftBuffer = this.serializedObject.FindProperty("fftBuffer");

@@ -29,6 +29,9 @@ namespace Aleab.LoopbackAudioVisualizer
             if (this._contexts.Contains(context))
                 return false;
 
+            if (fftBuffer == null || fftBuffer.Length < (int)this.FftSize)
+                return false;
+
             this._contexts.Add(context);
             this.GetFftData(fftBuffer);
             return true;

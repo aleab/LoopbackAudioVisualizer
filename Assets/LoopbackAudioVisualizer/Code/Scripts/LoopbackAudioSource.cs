@@ -59,6 +59,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
 #pragma warning disable 0414
 
+        // ReSharper disable once NotAccessedField.Local
         [Space(10.0f)]
         [SerializeField]
         private string loopbackDeviceName;
@@ -97,7 +98,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         #endregion Public properties
 
-        public event EventHandler<MMDeviceEventArgs> DeviceInitialized;
+        public event EventHandler<MMDeviceChangedEventArgs> DeviceChanged;
 
         public event EventHandler<SingleBlockReadEventArgs> SingleBlockRead;
 
@@ -115,8 +116,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         public void Init(MMDevice loopbackDevice)
         {
             Debug.Log($"Initializing {nameof(LoopbackAudioSource)} ({this.gameObject.name})...");
-
-            this.LoopbackDevice = loopbackDevice;
+            bool initialized = false;
 
             this.StopListening();
             this.ReleaseAudioSources();
@@ -145,10 +145,17 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
                 this.SetupSampleSource();
 
                 Debug.Log($"Initialized {nameof(LoopbackAudioSource)} ({this.gameObject.name}).");
-                this.DeviceInitialized?.Invoke(this, new MMDeviceEventArgs(loopbackDevice));
-
-                this.StartListening();
+                initialized = true;
             }
+
+            if (this.LoopbackDevice?.DeviceID != loopbackDevice?.DeviceID)
+            {
+                this.LoopbackDevice = loopbackDevice;
+                this.DeviceChanged?.Invoke(this, new MMDeviceChangedEventArgs(loopbackDevice, initialized));
+            }
+
+            if (initialized)
+                this.StartListening();
         }
 
         public void StartListening()
