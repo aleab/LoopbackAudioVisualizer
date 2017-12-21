@@ -54,7 +54,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
                     this.spectrumProvider.GetFftData(this.rawFftDataBuffer, this);
 
                     // Take the first N/2 values
-                    for (int i = 0; i < this.fftDataBuffer.Length / 2; ++i)
+                    for (int i = 0; i < this.fftDataBuffer.Length; ++i)
                         this.fftDataBuffer[i] = this.rawFftDataBuffer[i];
                 }
 
