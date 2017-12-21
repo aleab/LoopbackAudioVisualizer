@@ -15,7 +15,7 @@ namespace Aleab.LoopbackAudioVisualizer.WinAPI
         public Point Location { get { return this.Bounds.Location; } }
 
         public Size Size { get { return this.Bounds.Size; } }
-        
+
         public bool AlwaysOnTop { get; private set; }
 
         public bool AutoHide { get; private set; }

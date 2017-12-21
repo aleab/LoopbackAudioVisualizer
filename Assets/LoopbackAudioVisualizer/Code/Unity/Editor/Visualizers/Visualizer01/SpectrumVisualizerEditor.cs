@@ -1,9 +1,9 @@
 ﻿#if UNITY_EDITOR
 
-using System;
 using Aleab.LoopbackAudioVisualizer.Maths;
 using Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01;
 using Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions;
+using System;
 using UnityEditor;
 using UnityEngine;
 
