@@ -140,13 +140,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2215e9572b95498b93caff21b68830db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fftSize: 512
-  fftBuffer: []
+  fftSize: 1024
+  rawFftDataBuffer: []
+  fftDataBuffer: []
   cubePrefab: {fileID: 1575702257}
   center: {x: 0, y: 0, z: 0}
   radius: 10
-  yScaleMultiplier: 25
-  maxYScale: 125
+  maxYScale: 90
+  lowFreqGain: 9
+  highFreqGain: 18
+  equalizationFunctionType: 1
+  gaussStdDeviation: 35
+  logSteepness: 10
 --- !u!4 &975967632
 Transform:
   m_ObjectHideFlags: 0

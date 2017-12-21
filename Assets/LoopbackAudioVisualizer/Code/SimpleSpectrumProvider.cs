@@ -37,11 +37,28 @@ namespace Aleab.LoopbackAudioVisualizer
             return true;
         }
 
+        /// <summary>
+        /// Get the index of the FFT buffer corresponding to the specified frequency.
+        /// </summary>
+        /// <param name="frequency"> Frequency. </param>
+        /// <returns> Index. </returns>
         public int GetFftBandIndex(float frequency)
         {
             int fftSize = (int)this.FftSize;
             double f = this._sampleRate / 2.0;
             return (int)((frequency / f) * (fftSize / 2.0));
+        }
+
+        /// <summary>
+        /// Get the frequency corresponding to the specified index of the FFT buffer.
+        /// </summary>
+        /// <param name="index"> Index. </param>
+        /// <returns> Frequency. </returns>
+        public float GetFrequency(int index)
+        {
+            int fftSize = (int)this.FftSize;
+            double f = this._sampleRate / 2.0;
+            return (float)((f * index) / (fftSize / 2.0));
         }
 
         public override void Add(float[] samples, int count)

@@ -1,5 +1,6 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
 using Aleab.LoopbackAudioVisualizer.Helpers;
+using Aleab.LoopbackAudioVisualizer.Maths;
 using CSCore.DSP;
 using MathNet.Numerics;
 using System;
@@ -10,7 +11,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 {
     public class SpectrumVisualizer : BaseSpectrumVisualizer
     {
-        private const FftSize REFERENCE_FFTSIZE = FftSize.Fft512;
+        private const FftSize REFERENCE_FFTSIZE = FftSize.Fft1024;
 
         #region Inspector
 
@@ -25,12 +26,31 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private float radius = 10.0f;
 
         [SerializeField]
-        [Range(0.1f, 100.0f)]
-        private float yScaleMultiplier = 25.0f;
+        [Range(0.0f, 500.0f)]
+        private float maxYScale = 90.0f;
+
+        #region Equalization
 
         [SerializeField]
-        [Range(0.0f, 500.0f)]
-        private float maxYScale = 125.0f;
+        [Range(0.1f, 25.0f)]
+        private float lowFreqGain = 9.0f;
+
+        [SerializeField]
+        [Range(0.1f, 25.0f)]
+        private float highFreqGain = 18.0f;
+
+        [SerializeField]
+        private FunctionType equalizationFunctionType = FunctionType.Gaussian;
+
+        [SerializeField]
+        [Range(1.0f, 50.0f)]
+        private float gaussStdDeviation = 35.0f;
+
+        [SerializeField]
+        [Range(1.0f, 20.0f)]
+        private float logSteepness = 10.0f;
+
+        #endregion Equalization
 
         #endregion Inspector
 
@@ -44,10 +64,37 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         protected override void Start()
         {
-            GameObject cubes = SpawnRadialCubes((int)this.fftSize, this.center, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
+            GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, this.center, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
             this.cubes = new ScaleUpObject[cubes.transform.childCount];
             for (int i = 0; i < this.cubes.Length; ++i)
                 this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<ScaleUpObject>();
+        }
+
+        protected float EqualizationFunction(int fftBandIndex, float fftBandValue)
+        {
+            float f = this.spectrumProvider.GetFrequency(fftBandIndex);
+
+            float gain = 1.0f;
+            const float k = 1000.0f; // scale
+
+            switch (this.equalizationFunctionType)
+            {
+                case FunctionType.Gaussian:
+                    float gaussLowPeak = k * (this.lowFreqGain - this.highFreqGain);
+                    double gaussVariance = Math.Pow(this.gaussStdDeviation, 2);
+                    gain = (float)(gaussLowPeak * Math.Exp(-Math.Pow(f / k, 2) / (2.0 * gaussVariance)) + k * this.highFreqGain);
+                    break;
+
+                case FunctionType.Logarithm:
+                    const float logBase = 10.0f;
+                    const double freqAtMaxGain = 48000.0;
+                    float logScale = k * this.logSteepness;
+                    double lowFreqPow = Math.Pow(10, this.lowFreqGain * k / logScale);
+                    double highFreqPow = Math.Pow(10, this.highFreqGain * k / logScale);
+                    gain = (float)(logScale * Math.Log((highFreqPow - lowFreqPow) * (f / freqAtMaxGain) + lowFreqPow, logBase));
+                    break;
+            }
+            return fftBandValue * gain;
         }
 
         private IEnumerator UpdateCubes()
@@ -56,9 +103,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             float fftSizeRatio = (float)this.fftSize / (float)REFERENCE_FFTSIZE;
             while (this.updateCubesCoroutine != null)
             {
-                for (int i = 0; i < this.cubes.Length && i < this.fftBuffer.Length; ++i)
+                for (int i = 0; i < this.cubes.Length && i < this.fftDataBuffer.Length; ++i)
                 {
-                    float scaledFftValue = this.fftBuffer[i] * 1000 * this.yScaleMultiplier * fftSizeRatio;
+                    float scaledFftValue = this.EqualizationFunction(i, this.fftDataBuffer[i]) * fftSizeRatio;
                     this.cubes[i].ScaleSmooth(this.maxYScale < 0.0f ? scaledFftValue : Math.Min(scaledFftValue, this.maxYScale), true);
                 }
                 yield return new WaitForSeconds(UPDATE_FFT_INTERVAL);
@@ -83,7 +130,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             }
 
             base.LoopbackAudioSource_DeviceChanged(sender, e);
-            
+
             if (e.Initialized)
                 this.updateCubesCoroutine = this.StartCoroutine(this.UpdateCubes());
             else
