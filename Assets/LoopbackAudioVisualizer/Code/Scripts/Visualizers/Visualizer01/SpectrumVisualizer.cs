@@ -23,7 +23,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private ScaleUpObject cubePrefab;
 
         [SerializeField]
-        private Vector3 center = Vector3.zero;
+        private Transform center;
 
         [SerializeField]
         [Range(1.0f, 100.0f)]
@@ -81,22 +81,33 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private Coroutine updateCubesCoroutine;
         private ScaleUpObject[] cubes;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             this.RequireField(nameof(this.cubePrefab), this.cubePrefab);
+            this.RequireField(nameof(this.center), this.center);
         }
 
         protected override void Start()
         {
+#if UNITY_EDITOR
             if (!EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
+#endif
 
             base.Start();
 
-            GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, this.center, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
+            GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
             this.cubes = new ScaleUpObject[cubes.transform.childCount];
             for (int i = 0; i < this.cubes.Length; ++i)
                 this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<ScaleUpObject>();
+        }
+
+        protected virtual void Update()
+        {
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                this.UpdateEditorCubesParentContainer();
+#endif
         }
 
         protected float EqualizationFunction(int fftBandIndex, float fftBandValue)
@@ -165,6 +176,15 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 this.ResetCubes();
         }
 
+        /// <summary>
+        /// Spaws cubes upon a circumference.
+        /// </summary>
+        /// <param name="n"> Number of cubes. </param>
+        /// <param name="center"> Center of the circumference in local coordinates. </param>
+        /// <param name="radius"> Radius of the circumference. </param>
+        /// <param name="cubePrefab"> Cubes template. </param>
+        /// <param name="parent"> Parent of the cubes structure. </param>
+        /// <returns> Returns the GameObject containing the cubes, whose parent is 'parent'. </returns>
         protected static GameObject SpawnRadialCubes(int n, Vector3 center, float radius, GameObject cubePrefab, Transform parent = null)
         {
             #region Maths
@@ -240,9 +260,17 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             double deltaRadians = Trig.DegreeToRadian(deltaDegrees);
             float squareSide = (float)(2.0 * radius * Math.Sin(deltaRadians / 2) * (1 / (Math.Cos(deltaRadians / 2) + Math.Sin(deltaRadians / 2))));
 
+            // Save parent's current local rotation; it will be re-set later
+            Quaternion parentRotation = parent?.localRotation ?? Quaternion.identity;
+            if (parent != null)
+                parent.localRotation = Quaternion.identity;
+
+            // Create the cubes container, child of parent
             GameObject cubes = new GameObject($"{n}Cubes");
             cubes.transform.parent = parent;
-            cubes.transform.position = center;
+            cubes.transform.localPosition = center;
+
+            // Create the cubes
             for (int i = 0; i < n; ++i)
             {
                 cubes.transform.localEulerAngles = new Vector3(0.0f, -deltaDegrees * i, 0.0f);
@@ -254,6 +282,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 cube.transform.parent = cubes.transform;
                 cube.SetActive(true);
             }
+            cubes.transform.localRotation = Quaternion.identity;
+
+            // Re-set parent's original local rotation
+            if (parent != null)
+                parent.localRotation = parentRotation;
 
             return cubes;
         }
@@ -297,7 +330,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
             if (this.cubePrefab != null)
             {
-                cubesParent = SpawnRadialCubes((int)this.fftSize / 2, this.center, this.radius, this.cubePrefab.gameObject, this.editorCubesParentContainer.transform);
+                cubesParent = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.editorCubesParentContainer.transform);
                 cubesParent.name = "ExampleCubes";
                 cubesParent.AddComponent<UnityInspectorOnly>();
                 this.editorCubes = new ScaleUpObject[cubesParent.transform.childCount];
@@ -315,6 +348,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                     float rndScaledValue = this.EqualizationFunction(i, rndValue * gaussMult);
                     this.editorCubes[i].Scale((this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale)) * this.editorCubes[i].gameObject.transform.localScale.y);
                 }
+
+                this.UpdateEditorCubesParentContainer();
             }
 
             this.spectrumProvider = null;
@@ -344,14 +379,23 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 this.editorCubesParentContainer = new GameObject(EDITOR_CUBES_PARENT_CONTAINER_NAME)
                 {
                     isStatic = true,
-                    transform =
-                    {
-                        position = this.center,
-                        localScale = Vector3.one,
-                        parent = null
-                    }
+                    transform = { parent = null }
                 };
                 this.editorCubesParentContainer.AddComponent<UnityInspectorOnly>();
+            }
+
+            this.editorCubesParentContainer.transform.localPosition = Vector3.zero;
+            this.editorCubesParentContainer.transform.localRotation = Quaternion.identity;
+            this.editorCubesParentContainer.transform.localScale = Vector3.one;
+        }
+
+        private void UpdateEditorCubesParentContainer()
+        {
+            if (this.editorCubesParentContainer != null)
+            {
+                this.editorCubesParentContainer.transform.position = this.gameObject.transform.position;
+                this.editorCubesParentContainer.transform.localRotation = this.gameObject.transform.localRotation;
+                this.editorCubesParentContainer.transform.localScale = this.gameObject.transform.localScale;
             }
         }
 
