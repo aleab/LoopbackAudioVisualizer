@@ -5,8 +5,10 @@ using CSCore.DSP;
 using MathNet.Numerics;
 using System;
 using System.Collections;
+using Aleab.LoopbackAudioVisualizer.Unity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Range = Aleab.LoopbackAudioVisualizer.Unity.RangeAttribute;
 
 #if UNITY_EDITOR
 
@@ -25,12 +27,15 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         #region Inspector
 
         [SerializeField]
+        [DisableWhenPlaying]
         private ScaleUpObject cubePrefab;
 
         [SerializeField]
+        [DisableWhenPlaying]
         private Transform center;
 
         [SerializeField]
+        [DisableWhenPlaying]
         [Range(1.0f, 100.0f)]
         private float radius = 10.0f;
 

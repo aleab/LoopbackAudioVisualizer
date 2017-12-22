@@ -30,9 +30,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space();
-            EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
             EditorExtension.DrawPropertyFieldSafe(this.fftSize, nameof(this.fftSize), new GUIContent("FFT Size"));
-            EditorGUI.EndDisabledGroup();
 
             EditorGUI.BeginDisabledGroup(true);
             EditorExtension.DrawCompactArray(this.rawFftDataBuffer, nameof(this.rawFftDataBuffer), new GUIContent("Raw FFT Data"), 4);

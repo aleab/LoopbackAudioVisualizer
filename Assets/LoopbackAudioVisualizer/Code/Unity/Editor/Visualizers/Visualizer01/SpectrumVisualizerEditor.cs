@@ -54,13 +54,11 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
             this.serializedObject.Update();
 
             GUILayout.Space(16.0f);
-            EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
             EditorExtension.DrawPropertyFieldSafe(this.cubePrefab, nameof(this.cubePrefab), new GUIContent("Cube Prefab"));
 
             EditorExtension.DrawHeader("Cubes' circumference");
             EditorExtension.DrawPropertyFieldSafe(this.center, nameof(this.center), new GUIContent("Center", "The center of the circumference the cube-frequencies are going to be placed upon."));
-            EditorExtension.DrawRangeFieldSafe(this.radius, nameof(this.radius), new GUIContent("Radius", "The radius of the circumference the cubes-frequencies are going to be placed upon."));
-            EditorGUI.EndDisabledGroup();
+            EditorExtension.DrawPropertyFieldSafe(this.radius, nameof(this.radius), new GUIContent("Radius", "The radius of the circumference the cubes-frequencies are going to be placed upon."));
 
             EditorGUILayout.Space();
             if (!EditorExtension.DrawTogglePropertyField(this.maxYScale, new GUIContent("Max Relative Y Scale", "Maximum Y scale of each cube, relative to their initial scale (the latter multiplied by the former).")))

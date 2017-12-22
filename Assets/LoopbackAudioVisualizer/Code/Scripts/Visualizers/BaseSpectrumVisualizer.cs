@@ -1,5 +1,6 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
 using Aleab.LoopbackAudioVisualizer.Helpers;
+using Aleab.LoopbackAudioVisualizer.Unity;
 using CSCore.DSP;
 using CSCore.Streams;
 using System;
@@ -15,6 +16,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         #region Inspector
 
         [SerializeField]
+        [DisableWhenPlaying]
         protected FftSize fftSize = FftSize.Fft512;
 
         [SerializeField]

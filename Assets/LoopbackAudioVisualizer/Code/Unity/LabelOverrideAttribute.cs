@@ -1,16 +1,32 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
+
+#if UNITY_EDITOR
+
+using UnityEditor;
+
+#endif
 
 namespace Aleab.LoopbackAudioVisualizer.Unity
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    public class LabelOverrideAttribute : PropertyAttribute
+    public class LabelOverrideAttribute : MultiPropertyAttribute
     {
-        public readonly string label;
+        private readonly string label;
 
         public LabelOverrideAttribute(string label)
         {
             this.label = label;
         }
+
+#if UNITY_EDITOR
+
+        public override GUIContent BuildLabel(GUIContent label)
+        {
+            label.text = this.label;
+            return base.BuildLabel(label);
+        }
+
+        public override bool OnGUI(Rect position, SerializedProperty property, GUIContent label) => false;
+
+#endif
     }
 }
