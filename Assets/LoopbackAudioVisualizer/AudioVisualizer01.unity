@@ -146,12 +146,15 @@ MonoBehaviour:
   cubePrefab: {fileID: 1575702257}
   center: {x: 0, y: 0, z: 0}
   radius: 10
-  maxYScale: 90
-  lowFreqGain: 9
-  highFreqGain: 18
-  equalizationFunctionType: 1
-  gaussStdDeviation: 35
-  logSteepness: 10
+  maxYScale: 100
+  equalizationFunctionType: 0
+  gaussStdDeviation: 1.8
+  gaussLowFreqGain: 3
+  gaussHighFreqGain: 32
+  logSteepness: 11
+  logHighFreq: 4.096
+  logLowFreqGain: 1.2
+  logHighFreqGain: 19
 --- !u!4 &975967632
 Transform:
   m_ObjectHideFlags: 0

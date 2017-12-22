@@ -22,33 +22,53 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private Vector3 center = Vector3.zero;
 
         [SerializeField]
-        [Range(10.0f, 200.0f)]
+        [Range(1.0f, 100.0f)]
         private float radius = 10.0f;
 
         [SerializeField]
         [Range(0.0f, 500.0f)]
-        private float maxYScale = 90.0f;
+        private float maxYScale = 125.0f;
 
         #region Equalization
 
         [SerializeField]
-        [Range(0.1f, 25.0f)]
-        private float lowFreqGain = 9.0f;
-
-        [SerializeField]
-        [Range(0.1f, 25.0f)]
-        private float highFreqGain = 18.0f;
-
-        [SerializeField]
         private FunctionType equalizationFunctionType = FunctionType.Gaussian;
+
+        #region Gaussian
 
         [SerializeField]
         [Range(1.0f, 50.0f)]
-        private float gaussStdDeviation = 35.0f;
+        private float gaussStdDeviation = 9.0f;
+
+        [SerializeField]
+        [Range(0.1f, 15.0f)]
+        private float gaussLowFreqGain = 9.0f;
+
+        [SerializeField]
+        [Range(10.0f, 50.0f)]
+        private float gaussHighFreqGain = 32.0f;
+
+        #endregion Gaussian
+
+        #region Logarithmic
 
         [SerializeField]
         [Range(1.0f, 20.0f)]
         private float logSteepness = 10.0f;
+
+        [SerializeField]
+        [Range(2.0f, 48.0f)]
+        private float logHighFreq = 44.1f;
+
+        [SerializeField]
+        [Range(0.1f, 10.0f)]
+        private float logLowFreqGain = 9.0f;
+
+        [SerializeField]
+        [Range(0.1f, 25.0f)]
+        private float logHighFreqGain = 18.0f;
+
+        #endregion Logarithmic
 
         #endregion Equalization
 
@@ -64,6 +84,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         protected override void Start()
         {
+            base.Start();
+
             GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, this.center, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
             this.cubes = new ScaleUpObject[cubes.transform.childCount];
             for (int i = 0; i < this.cubes.Length; ++i)
@@ -80,18 +102,17 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             switch (this.equalizationFunctionType)
             {
                 case FunctionType.Gaussian:
-                    float gaussLowPeak = k * (this.lowFreqGain - this.highFreqGain);
+                    float gaussLowPeak = k * (this.gaussLowFreqGain - this.gaussHighFreqGain);
                     double gaussVariance = Math.Pow(this.gaussStdDeviation, 2);
-                    gain = (float)(gaussLowPeak * Math.Exp(-Math.Pow(f / k, 2) / (2.0 * gaussVariance)) + k * this.highFreqGain);
+                    gain = (float)(gaussLowPeak * Math.Exp(-Math.Pow(f / k, 2) / (2.0 * gaussVariance)) + k * this.gaussHighFreqGain);
                     break;
 
                 case FunctionType.Logarithm:
-                    const float logBase = 10.0f;
-                    const double freqAtMaxGain = 48000.0;
+                    const double logBase = 10.0;
                     float logScale = k * this.logSteepness;
-                    double lowFreqPow = Math.Pow(10, this.lowFreqGain * k / logScale);
-                    double highFreqPow = Math.Pow(10, this.highFreqGain * k / logScale);
-                    gain = (float)(logScale * Math.Log((highFreqPow - lowFreqPow) * (f / freqAtMaxGain) + lowFreqPow, logBase));
+                    double lowFreqPow = Math.Pow(logBase, (this.logLowFreqGain * k) / logScale);
+                    double highFreqPow = Math.Pow(logBase, (this.logHighFreqGain * k) / logScale);
+                    gain = (float)(logScale * Math.Log((highFreqPow - lowFreqPow) * (f / (this.logHighFreq * 1000.0)) + lowFreqPow, logBase));
                     break;
             }
             return fftBandValue * gain;

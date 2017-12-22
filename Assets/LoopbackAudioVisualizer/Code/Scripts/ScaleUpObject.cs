@@ -40,7 +40,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         public void Scale(float scale, bool relative = false)
         {
-            float absoluteScale = relative ? scale * this.initialScale : scale;
+            float absoluteScale = relative ? scale * Mathf.Max(this.initialScale, this.MinimumScale) : scale;
             this.gameObject.transform.localScale = new Vector3(
                 this.gameObject.transform.localScale.x,
                 Mathf.Abs(absoluteScale) >= this.minimumScale ? absoluteScale : this.minimumScale,
