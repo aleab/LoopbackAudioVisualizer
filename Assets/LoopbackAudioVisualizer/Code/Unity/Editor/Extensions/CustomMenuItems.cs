@@ -1,7 +1,6 @@
 ﻿#if UNITY_EDITOR
 
 using UnityEditor;
-using UnityEditor.SceneManagement;
 
 namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
 {
@@ -19,8 +18,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
                 EditorApplication.isPlaying = false;
             else
             {
-                EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
-                EditorSceneManager.OpenScene("Assets/LoopbackAudioVisualizer/00_Common.unity");
+                Scenes.Common.Load();
                 EditorApplication.isPlaying = true;
             }
         }

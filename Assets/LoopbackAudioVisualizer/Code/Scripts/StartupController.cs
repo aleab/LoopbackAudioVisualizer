@@ -48,8 +48,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
             Preferences.Load();
 
-#if DEBUG
-            SceneManager.LoadScene(1, LoadSceneMode.Additive);
+#if DEBUG && UNITY_EDITOR
+            Scenes.AudioVisualizer01.Load(LoadSceneMode.Additive);
 #endif
 
             this.OnStartupCompleted();
@@ -63,7 +63,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private void SceneManager_SceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            //SceneManager.SetActiveScene(scene);
         }
 
         private void OnStartupCompleted()
