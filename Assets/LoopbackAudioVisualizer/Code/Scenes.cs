@@ -1,9 +1,14 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
+#if UNITY_EDITOR
+
+using UnityEditor;
+using UnityEditor.SceneManagement;
+
+#endif
 
 namespace Aleab.LoopbackAudioVisualizer
 {

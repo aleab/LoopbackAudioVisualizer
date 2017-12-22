@@ -5,10 +5,15 @@ using CSCore.DSP;
 using MathNet.Numerics;
 using System;
 using System.Collections;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
+#if UNITY_EDITOR
+
+using UnityEditor;
+using UnityEditor.SceneManagement;
+
+#endif
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 {
