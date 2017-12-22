@@ -5,10 +5,14 @@ using CSCore.DSP;
 using MathNet.Numerics;
 using System;
 using System.Collections;
+using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 {
+    [ExecuteInEditMode]
     public class SpectrumVisualizer : BaseSpectrumVisualizer
     {
         private const FftSize REFERENCE_FFTSIZE = FftSize.Fft1024;
@@ -84,6 +88,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         protected override void Start()
         {
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                return;
+
             base.Start();
 
             GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, this.center, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
@@ -250,5 +257,106 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
             return cubes;
         }
+
+        #region ExecuteInEditMode
+
+#if UNITY_EDITOR
+
+        private const string EDITOR_CUBES_PARENT_CONTAINER_NAME = "EditorOnly_Cubes";
+
+        [NonSerialized]
+        private GameObject editorCubesParentContainer;
+
+        [NonSerialized]
+        private ScaleUpObject[] editorCubes;
+
+        private void OnValidate()
+        {
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                this.StartCoroutine(this.CreateEditorCubes());
+        }
+
+        private IEnumerator CreateEditorCubes()
+        {
+            yield return null;
+
+            // Load EditorOnly scene and find editorCubesParentContainer
+            if (!Scenes.AudioVisualizer01_EditorOnly.IsLoaded())
+                this.LoadEditorOnlyScene();
+            this.FindOrCreateEditorCubesParentContainer();
+
+            // Fake temporary spectrum provider
+            this.spectrumProvider = new SimpleSpectrumProvider(2, 48000, this.fftSize);
+
+            // Create the cubes' parent inside the container in the EditorOnly scene
+            this.editorCubes = null;
+            Transform cubesParentTransform = this.editorCubesParentContainer.transform.Find("ExampleCubes");
+            GameObject cubesParent = cubesParentTransform?.gameObject;
+            if (cubesParent != null)
+                DestroyImmediate(cubesParent);
+
+            if (this.cubePrefab != null)
+            {
+                cubesParent = SpawnRadialCubes((int)this.fftSize / 2, this.center, this.radius, this.cubePrefab.gameObject, this.editorCubesParentContainer.transform);
+                cubesParent.name = "ExampleCubes";
+                cubesParent.AddComponent<UnityInspectorOnly>();
+                this.editorCubes = new ScaleUpObject[cubesParent.transform.childCount];
+                for (int i = 0; i < this.editorCubes.Length; ++i)
+                {
+                    this.editorCubes[i] = cubesParent.transform.GetChild(i).gameObject.GetComponent<ScaleUpObject>();
+
+                    float currFreq = this.spectrumProvider.GetFrequency(i);
+                    float rndValue = (float)MathNet.Numerics.Random.MersenneTwister.Default.NextDouble();
+                    float g1 = (float)(+0.009 * Math.Exp(-Math.Pow(currFreq / 1000 - 2.25, 2) / (2 * 4.60 * 4.60)));
+                    float g2 = (float)(+0.000 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.00, 2) / (2 * 0.35 * 0.35)));
+                    float g3 = (float)(+0.005 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.85, 2) / (2 * 0.85 * 0.85)));
+                    float g4 = (float)(-0.008 * Math.Exp(-Math.Pow(currFreq / 1000 - 3.50, 2) / (2 * 5.00 * 5.00)));
+                    float gaussMult = Math.Abs(g1 + g2 + g3 + g4);
+                    float rndScaledValue = this.EqualizationFunction(i, rndValue * gaussMult);
+                    this.editorCubes[i].Scale((this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale)) * this.editorCubes[i].gameObject.transform.localScale.y);
+                }
+            }
+
+            this.spectrumProvider = null;
+        }
+
+        private void LoadEditorOnlyScene()
+        {
+            Scene editorOnlyScene = Scenes.AudioVisualizer01_EditorOnly.Load(LoadSceneMode.Additive);
+            if (!editorOnlyScene.IsValid())
+            {
+                Scene currentScene = SceneManager.GetActiveScene();
+
+                // Create and save the scene
+                editorOnlyScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+                SceneManager.SetActiveScene(editorOnlyScene);
+                this.FindOrCreateEditorCubesParentContainer();
+                SceneManager.SetActiveScene(currentScene);
+                EditorSceneManager.SaveScene(editorOnlyScene, Scenes.AudioVisualizer01_EditorOnly.Path);
+            }
+        }
+
+        private void FindOrCreateEditorCubesParentContainer()
+        {
+            this.editorCubesParentContainer = GameObject.Find(EDITOR_CUBES_PARENT_CONTAINER_NAME);
+            if (this.editorCubesParentContainer == null)
+            {
+                this.editorCubesParentContainer = new GameObject(EDITOR_CUBES_PARENT_CONTAINER_NAME)
+                {
+                    isStatic = true,
+                    transform =
+                    {
+                        position = this.center,
+                        localScale = Vector3.one,
+                        parent = null
+                    }
+                };
+                this.editorCubesParentContainer.AddComponent<UnityInspectorOnly>();
+            }
+        }
+
+#endif
+
+        #endregion ExecuteInEditMode
     }
 }
