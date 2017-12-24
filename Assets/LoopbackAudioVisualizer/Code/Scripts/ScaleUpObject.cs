@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts
 {
+    [DisallowMultipleComponent]
     public class ScaleUpObject : MonoBehaviour
     {
         #region Inspector
@@ -11,13 +12,12 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 #pragma warning disable 0414, 0649
 
         [SerializeField]
-        private MeshFilter meshFilter;
+        protected MeshRenderer meshRenderer;
 
         [SerializeField]
         [Range(0.0f, float.MaxValue)]
         private float minimumScale = 0.05f;
 
-        [Space]
         [SerializeField]
         [Range(50.0f, 100.0f)]
         private float smoothScaleDuration = 50.0f;
@@ -26,30 +26,31 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         #endregion Inspector
 
-        private float initialScale;
+        protected Vector3 initialScale;
 
         private Coroutine scaleSmoothCoroutine;
 
         public float MinimumScale { get { return this.minimumScale; } }
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            this.RequireField(nameof(this.meshFilter), this.meshFilter);
-            this.initialScale = this.gameObject.transform.localScale.y;
+            this.RequireField(nameof(this.meshRenderer), this.meshRenderer);
+            this.initialScale = this.gameObject.transform.localScale;
         }
 
         public void Scale(float scale, bool relative = false)
         {
-            float absoluteScale = relative ? scale * Mathf.Max(this.initialScale, this.MinimumScale) : scale;
+            float absoluteScale = relative ? scale * Mathf.Max(this.initialScale.y, this.MinimumScale) : scale;
             this.gameObject.transform.localScale = new Vector3(
                 this.gameObject.transform.localScale.x,
                 Mathf.Abs(absoluteScale) >= this.minimumScale ? absoluteScale : this.minimumScale,
                 this.gameObject.transform.localScale.z);
+            this.OnScaled();
         }
 
         public void ScaleSmooth(float scale, bool relative = false)
         {
-            float absoluteScale = relative ? scale * this.initialScale : scale;
+            float absoluteScale = relative ? scale * this.initialScale.y : scale;
             float finalYScale = Mathf.Abs(absoluteScale) >= this.minimumScale ? absoluteScale : this.minimumScale;
 
             if (this.scaleSmoothCoroutine != null)
@@ -71,10 +72,15 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
                     this.gameObject.transform.localScale.x,
                     initialYScale + deltaYScale * ((this.smoothScaleDuration - remainingMilliseconds) / this.smoothScaleDuration),
                     this.gameObject.transform.localScale.z);
+                this.OnScaled();
                 yield return null;
 
                 remainingMilliseconds -= Time.deltaTime * 1000;
             }
+        }
+
+        protected virtual void OnScaled()
+        {
         }
     }
 }

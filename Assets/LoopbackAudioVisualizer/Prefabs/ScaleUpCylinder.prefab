@@ -19,7 +19,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4521206442898382}
-  - component: {fileID: 114130899088707182}
+  - component: {fileID: 114714571060850950}
   m_Layer: 0
   m_Name: ScaleUpCylinder
   m_TagString: Untagged
@@ -113,7 +113,7 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1942095756558006}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114130899088707182
+--- !u!114 &114714571060850950
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -124,7 +124,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfaec0a3601e4c6ebed870cbbbb2f230, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshFilter: {fileID: 33104186621877506}
+  meshRenderer: {fileID: 23319963574842982}
+  minimumScale: 0.05
+  smoothScaleDuration: 50
 --- !u!136 &136306108308607974
 CapsuleCollider:
   m_ObjectHideFlags: 1
