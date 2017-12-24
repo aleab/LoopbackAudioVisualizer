@@ -26,6 +26,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         #region Inspector
 
+#pragma warning disable 0414, 0649
+
         [SerializeField]
         [DisableWhenPlaying]
         private ScaleUpObject cubePrefab;
@@ -86,6 +88,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         #endregion Equalization
 
+#pragma warning restore 0414, 0649
+
         #endregion Inspector
 
         private Coroutine updateCubesCoroutine;
@@ -125,14 +129,14 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             float f = this.spectrumProvider.GetFrequency(fftBandIndex);
 
             float gain = 1.0f;
-            const float k = 1000.0f; // scale
+            const float k = 100.0f; // scale
 
             switch (this.equalizationFunctionType)
             {
                 case FunctionType.Gaussian:
                     float gaussLowPeak = k * (this.gaussLowFreqGain - this.gaussHighFreqGain);
                     double gaussVariance = Math.Pow(this.gaussStdDeviation, 2);
-                    gain = (float)(gaussLowPeak * Math.Exp(-Math.Pow(f / k, 2) / (2.0 * gaussVariance)) + k * this.gaussHighFreqGain);
+                    gain = (float)(gaussLowPeak * Math.Exp(-Math.Pow(f / 1000.0, 2) / (2.0 * gaussVariance)) + k * this.gaussHighFreqGain);
                     break;
 
                 case FunctionType.Logarithm:
@@ -287,10 +291,10 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
                 GameObject cube = Instantiate(cubePrefab);
                 cube.name = $"Cube{i}";
+                cube.SetActive(true); // Awake it now, to let it store the prefab's original scale
                 cube.transform.localScale = new Vector3(squareSide, squareSide, squareSide);
                 cube.transform.position = cubes.transform.position + Vector3.forward * radius;
                 cube.transform.parent = cubes.transform;
-                cube.SetActive(true);
             }
             cubes.transform.localRotation = Quaternion.identity;
 
@@ -344,6 +348,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 cubesParent.name = "ExampleCubes";
                 cubesParent.AddComponent<UnityInspectorOnly>();
                 this.editorCubes = new ScaleUpObject[cubesParent.transform.childCount];
+
+                // Randomly create a plausible spectrum for preview.
                 for (int i = 0; i < this.editorCubes.Length; ++i)
                 {
                     this.editorCubes[i] = cubesParent.transform.GetChild(i).gameObject.GetComponent<ScaleUpObject>();
