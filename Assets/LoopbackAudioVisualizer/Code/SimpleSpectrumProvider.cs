@@ -33,7 +33,14 @@ namespace Aleab.LoopbackAudioVisualizer
                 return false;
 
             this._contexts.Add(context);
-            this.GetFftData(fftBuffer);
+            try
+            {
+                this.GetFftData(fftBuffer);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
             return true;
         }
 

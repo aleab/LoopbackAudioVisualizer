@@ -5,6 +5,7 @@ using CSCore.DSP;
 using MathNet.Numerics;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Aleab.LoopbackAudioVisualizer.Unity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -174,6 +175,17 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             }
         }
 
+        private void RenameCubes(IReadOnlyList<ScaleUpObject> cubes)
+        {
+#if UNITY_EDITOR
+            if (cubes != null)
+            {
+                for (int i = 0; i < cubes.Count; ++i)
+                    cubes[i].gameObject.name = $"Cube{i,-4} @ {this.spectrumProvider.GetFrequency(i),+5:N0}Hz";
+            }
+#endif
+        }
+
         protected override void LoopbackAudioSource_DeviceChanged(object sender, MMDeviceChangedEventArgs e)
         {
             if (this.updateCubesCoroutine != null)
@@ -184,10 +196,12 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
             base.LoopbackAudioSource_DeviceChanged(sender, e);
 
+            this.ResetCubes();
             if (e.Initialized)
+            {
+                this.RenameCubes(this.cubes);
                 this.updateCubesCoroutine = this.StartCoroutine(this.UpdateCubes());
-            else
-                this.ResetCubes();
+            }
         }
 
         /// <summary>
@@ -364,6 +378,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                     float rndScaledValue = this.EqualizationFunction(i, rndValue * gaussMult);
                     this.editorCubes[i].Scale(this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale));
                 }
+                this.RenameCubes(this.editorCubes);
 
                 this.UpdateEditorCubesParentContainer();
             }
