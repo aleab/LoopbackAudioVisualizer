@@ -94,7 +94,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         #endregion Inspector
 
         private Coroutine updateCubesCoroutine;
-        private ScaleUpObject[] cubes;
+        private EmissiveScaleUpObject[] cubes;
 
         protected virtual void Awake()
         {
@@ -112,9 +112,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             base.Start();
 
             GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
-            this.cubes = new ScaleUpObject[cubes.transform.childCount];
+            this.cubes = new EmissiveScaleUpObject[cubes.transform.childCount];
             for (int i = 0; i < this.cubes.Length; ++i)
-                this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<ScaleUpObject>();
+                this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
         }
 
         protected virtual void Update()
@@ -151,6 +151,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             return fftBandValue * gain;
         }
 
+        protected float LightsIntensityFunction(float value)
+        {
+            return 2.35f * Mathf.Log10(2.0f * value + 1);
+        }
+
         private IEnumerator UpdateCubes()
         {
             yield return null;
@@ -161,6 +166,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 {
                     float scaledFftValue = this.EqualizationFunction(i, this.fftDataBuffer[i]) * fftSizeRatio;
                     this.cubes[i].ScaleSmooth(this.maxYScale < 0.0f ? scaledFftValue : Math.Min(scaledFftValue, this.maxYScale), true);
+                    this.cubes[i].SetLightsIntensity(this.LightsIntensityFunction(scaledFftValue / this.maxYScale));
                 }
                 yield return new WaitForSeconds(UPDATE_FFT_INTERVAL);
             }
@@ -171,7 +177,10 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             if (this.cubes != null)
             {
                 foreach (var cube in this.cubes)
+                {
                     cube.Scale(cube.MinimumScale);
+                    cube.SetLightsIntensity(this.LightsIntensityFunction(0.0f));
+                }
             }
         }
 
@@ -329,7 +338,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private GameObject editorCubesParentContainer;
 
         [NonSerialized]
-        private ScaleUpObject[] editorCubes;
+        private EmissiveScaleUpObject[] editorCubes;
 
         private void OnValidate()
         {
@@ -361,12 +370,12 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 cubesParent = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.editorCubesParentContainer.transform);
                 cubesParent.name = "ExampleCubes";
                 cubesParent.AddComponent<UnityInspectorOnly>();
-                this.editorCubes = new ScaleUpObject[cubesParent.transform.childCount];
+                this.editorCubes = new EmissiveScaleUpObject[cubesParent.transform.childCount];
 
                 // Randomly create a plausible spectrum for preview.
                 for (int i = 0; i < this.editorCubes.Length; ++i)
                 {
-                    this.editorCubes[i] = cubesParent.transform.GetChild(i).gameObject.GetComponent<ScaleUpObject>();
+                    this.editorCubes[i] = cubesParent.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
 
                     float currFreq = this.spectrumProvider.GetFrequency(i);
                     float rndValue = (float)MathNet.Numerics.Random.MersenneTwister.Default.NextDouble();
@@ -377,6 +386,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                     float gaussMult = Math.Abs(g1 + g2 + g3 + g4);
                     float rndScaledValue = this.EqualizationFunction(i, rndValue * gaussMult);
                     this.editorCubes[i].Scale(this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale));
+                    this.editorCubes[i].SetLightsIntensity(this.LightsIntensityFunction(rndScaledValue / this.maxYScale));
                 }
                 this.RenameCubes(this.editorCubes);
 
