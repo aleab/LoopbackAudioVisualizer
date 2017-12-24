@@ -39,11 +39,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         [SerializeField]
         [DisableWhenPlaying]
         [Range(1.0f, 100.0f)]
-        private float radius = 10.0f;
+        private float radius = 11.0f;
 
         [SerializeField]
         [Range(0.0f, 500.0f)]
-        private float maxYScale = 125.0f;
+        private float maxYScale = 11.0f;
 
         #region Equalization
 
@@ -53,36 +53,36 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         #region Gaussian
 
         [SerializeField]
-        [Range(1.0f, 50.0f)]
-        private float gaussStdDeviation = 9.0f;
+        [Range(1.0f, 25.0f)]
+        private float gaussStdDeviation = 1.8f;
 
         [SerializeField]
-        [Range(0.1f, 15.0f)]
-        private float gaussLowFreqGain = 9.0f;
+        [Range(0.1f, 10.0f)]
+        private float gaussLowFreqGain = 4.0f;
 
         [SerializeField]
-        [Range(10.0f, 50.0f)]
-        private float gaussHighFreqGain = 32.0f;
+        [Range(20.0f, 75.0f)]
+        private float gaussHighFreqGain = 45.0f;
 
         #endregion Gaussian
 
         #region Logarithmic
 
         [SerializeField]
-        [Range(1.0f, 20.0f)]
-        private float logSteepness = 10.0f;
+        [Range(25.0f, 75.0f)]
+        private float logSteepness = 45.0f;
 
         [SerializeField]
-        [Range(2.0f, 48.0f)]
-        private float logHighFreq = 44.1f;
+        [Range(2.048f, 48.0f)]
+        private float logHighFreq = 4.096f;
 
         [SerializeField]
         [Range(0.1f, 10.0f)]
-        private float logLowFreqGain = 9.0f;
+        private float logLowFreqGain = 1.5f;
 
         [SerializeField]
-        [Range(0.1f, 25.0f)]
-        private float logHighFreqGain = 18.0f;
+        [Range(20.0f, 75.0f)]
+        private float logHighFreqGain = 40.0f;
 
         #endregion Logarithmic
 
@@ -356,13 +356,13 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
                     float currFreq = this.spectrumProvider.GetFrequency(i);
                     float rndValue = (float)MathNet.Numerics.Random.MersenneTwister.Default.NextDouble();
-                    float g1 = (float)(+0.009 * Math.Exp(-Math.Pow(currFreq / 1000 - 2.25, 2) / (2 * 4.60 * 4.60)));
-                    float g2 = (float)(+0.000 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.00, 2) / (2 * 0.35 * 0.35)));
-                    float g3 = (float)(+0.005 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.85, 2) / (2 * 0.85 * 0.85)));
-                    float g4 = (float)(-0.008 * Math.Exp(-Math.Pow(currFreq / 1000 - 3.50, 2) / (2 * 5.00 * 5.00)));
+                    float g1 = (float)(+0.0085 * Math.Exp(-Math.Pow(currFreq / 1000 - 2.25, 2) / (2 * 4.60 * 4.60)));
+                    float g2 = (float)(-0.0005 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.00, 2) / (2 * 0.38 * 0.38)));
+                    float g3 = (float)(+0.0046 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.85, 2) / (2 * 0.85 * 0.85)));
+                    float g4 = (float)(-0.0070 * Math.Exp(-Math.Pow(currFreq / 1000 - 3.50, 2) / (2 * 5.00 * 5.00)));
                     float gaussMult = Math.Abs(g1 + g2 + g3 + g4);
                     float rndScaledValue = this.EqualizationFunction(i, rndValue * gaussMult);
-                    this.editorCubes[i].Scale((this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale)) * this.editorCubes[i].gameObject.transform.localScale.y);
+                    this.editorCubes[i].Scale(this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale));
                 }
 
                 this.UpdateEditorCubesParentContainer();
