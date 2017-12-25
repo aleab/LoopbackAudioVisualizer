@@ -9,7 +9,15 @@ using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 {
-    public class BaseSpectrumVisualizer : MonoBehaviour
+    /// <summary>
+    /// Base class of any audio visualizer that needs to use the spectrum data.<br/>
+    ///
+    /// This class can provide, at any moment after a device has been initialized, the samples of the FFT of the audio signal that is being played;
+    /// the total number of samples is equal to half of the FFT size.<br/>
+    ///
+    /// The basic usage is to start polling the <see cref="fftDataBuffer"/> in the <see cref="OnUpdateFftDataCoroutineStarted"/> method to get the up-to-date spectrum data.
+    /// </summary>
+    public abstract class BaseSpectrumVisualizer : MonoBehaviour
     {
         protected const float UPDATE_FFT_INTERVAL = 0.05f;
 
@@ -31,6 +39,14 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         private Coroutine updateFftDataCoroutine;
 
+        public FftSize FftSize { get { return this.fftSize; } }
+
+        public SimpleSpectrumProvider SpectrumProvider { get { return this.spectrumProvider ?? new SimpleSpectrumProvider(2, 48000, this.fftSize); } }
+
+        public event EventHandler UpdateFftDataCoroutineStarted;
+
+        public event EventHandler UpdateFftDataCoroutineStopped;
+
         protected virtual void Start()
         {
             if (AudioSourceController.LoopbackAudioSource != null)
@@ -48,6 +64,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
             this.fftDataBuffer = new float[(int)this.fftSize / 2];
             yield return null;
 
+            this.OnUpdateFftDataCoroutineStarted();
             while (this.updateFftDataCoroutine != null)
             {
                 if (this.spectrumProvider.IsNewDataAvailable)
@@ -57,15 +74,16 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
                     // Take the first N/2 values
                     for (int i = 0; i < this.fftDataBuffer.Length; ++i)
-                        this.fftDataBuffer[i] = this.rawFftDataBuffer[i];
+                        this.fftDataBuffer[i] = this.ProcessRawFftValue(this.rawFftDataBuffer[i], i);
                 }
 
                 yield return new WaitForSeconds(UPDATE_FFT_INTERVAL);
             }
 
-            Array.Clear(this.rawFftDataBuffer, 0, this.rawFftDataBuffer.Length);
-            Array.Clear(this.fftDataBuffer, 0, this.fftDataBuffer.Length);
+            this.OnUpdateFftDataCoroutineStopped();
         }
+
+        protected abstract float ProcessRawFftValue(float rawFftValue, int fftBandIndex);
 
         protected virtual void OnDisable()
         {
@@ -119,6 +137,18 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         protected virtual void LoopbackAudioSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
         {
             this.spectrumProvider.Add(e.Left, e.Right);
+        }
+
+        protected virtual void OnUpdateFftDataCoroutineStarted()
+        {
+            this.UpdateFftDataCoroutineStarted?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnUpdateFftDataCoroutineStopped()
+        {
+            Array.Clear(this.rawFftDataBuffer, 0, this.rawFftDataBuffer.Length);
+            Array.Clear(this.fftDataBuffer, 0, this.fftDataBuffer.Length);
+            this.UpdateFftDataCoroutineStopped?.Invoke(this, EventArgs.Empty);
         }
     }
 }

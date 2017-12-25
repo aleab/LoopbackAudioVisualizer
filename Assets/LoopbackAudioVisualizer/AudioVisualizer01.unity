@@ -134,13 +134,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 118941931}
-  m_LocalRotation: {x: 0, y: -0.92387956, z: 0, w: 0.38268343}
-  m_LocalPosition: {x: -9, y: 0, z: 9}
+  m_LocalRotation: {x: -0, y: 0.99999547, z: -0, w: 0.0030230265}
+  m_LocalPosition: {x: -4.5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1947435184}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: -135, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 179.654, z: 0}
 --- !u!1 &453720224
 GameObject:
   m_ObjectHideFlags: 0
@@ -430,6 +430,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 975967632}
+  - component: {fileID: 975967633}
   - component: {fileID: 975967631}
   m_Layer: 0
   m_Name: SpectrumVisualizer
@@ -449,22 +450,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2215e9572b95498b93caff21b68830db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fftSize: 512
-  rawFftDataBuffer: []
-  fftDataBuffer: []
+  scaledSpectrumVisualizer: {fileID: 975967633}
   cubePrefab: {fileID: 1210950444}
   cubesContainer: {fileID: 118941932}
   center: {fileID: 118941932}
   radius: 10
   maxYScale: 11
-  equalizationFunctionType: 1
-  gaussStdDeviation: 1.8
-  gaussLowFreqGain: 4
-  gaussHighFreqGain: 45
-  logSteepness: 38
-  logHighFreq: 4.096
-  logLowFreqGain: 1.5
-  logHighFreqGain: 40
 --- !u!4 &975967632
 Transform:
   m_ObjectHideFlags: 0
@@ -479,6 +470,28 @@ Transform:
   m_Father: {fileID: 1947435184}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &975967633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 975967630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f366fdae2b242d0914cb64ae8306460, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fftSize: 512
+  rawFftDataBuffer: []
+  fftDataBuffer: []
+  equalizationFunctionType: 0
+  gaussStdDeviation: 1.8
+  gaussLowFreqGain: 4
+  gaussHighFreqGain: 45
+  logSteepness: 45
+  logHighFreq: 4.096
+  logLowFreqGain: 1.5
+  logHighFreqGain: 40
 --- !u!1001 &1008103045
 Prefab:
   m_ObjectHideFlags: 0

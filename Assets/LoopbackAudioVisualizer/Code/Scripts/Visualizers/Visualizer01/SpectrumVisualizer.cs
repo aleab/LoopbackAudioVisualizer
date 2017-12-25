@@ -1,11 +1,10 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
 using Aleab.LoopbackAudioVisualizer.Helpers;
-using Aleab.LoopbackAudioVisualizer.Maths;
-using CSCore.DSP;
 using MathNet.Numerics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Aleab.LoopbackAudioVisualizer.Unity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -21,13 +20,15 @@ using UnityEditor.SceneManagement;
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 {
     [ExecuteInEditMode]
-    public class SpectrumVisualizer : BaseSpectrumVisualizer
+    public sealed class SpectrumVisualizer : MonoBehaviour
     {
-        private const FftSize REFERENCE_FFTSIZE = FftSize.Fft1024;
-
         #region Inspector
 
 #pragma warning disable 0414, 0649
+
+        [SerializeField]
+        [DisableWhenPlaying]
+        private ScaledSpectrumVisualizer scaledSpectrumVisualizer;
 
         [SerializeField]
         [DisableWhenPlaying]
@@ -50,80 +51,40 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         [Range(0.0f, 500.0f)]
         private float maxYScale = 11.0f;
 
-        #region Equalization
-
-        [SerializeField]
-        private FunctionType equalizationFunctionType = FunctionType.Gaussian;
-
-        #region Gaussian
-
-        [SerializeField]
-        [Range(1.0f, 25.0f)]
-        private float gaussStdDeviation = 1.8f;
-
-        [SerializeField]
-        [Range(0.1f, 10.0f)]
-        private float gaussLowFreqGain = 4.0f;
-
-        [SerializeField]
-        [Range(20.0f, 75.0f)]
-        private float gaussHighFreqGain = 45.0f;
-
-        #endregion Gaussian
-
-        #region Logarithmic
-
-        [SerializeField]
-        [Range(25.0f, 75.0f)]
-        private float logSteepness = 45.0f;
-
-        [SerializeField]
-        [Range(2.048f, 48.0f)]
-        private float logHighFreq = 4.096f;
-
-        [SerializeField]
-        [Range(0.1f, 10.0f)]
-        private float logLowFreqGain = 1.5f;
-
-        [SerializeField]
-        [Range(20.0f, 75.0f)]
-        private float logHighFreqGain = 40.0f;
-
-        #endregion Logarithmic
-
-        #endregion Equalization
-
 #pragma warning restore 0414, 0649
 
         #endregion Inspector
 
-        private Coroutine updateCubesCoroutine;
         private EmissiveScaleUpObject[] cubes;
 
-        protected virtual void Awake()
+        private void Awake()
         {
+            this.RequireField(nameof(this.scaledSpectrumVisualizer), this.scaledSpectrumVisualizer);
             this.RequireField(nameof(this.cubePrefab), this.cubePrefab);
             this.RequireField(nameof(this.center), this.center);
             if (this.cubesContainer == null)
                 this.cubesContainer = this.gameObject.transform;
+
+            this.scaledSpectrumVisualizer.FftBandScaled += this.ScaledSpectrumVisualizer_FftBandScaled;
+            this.scaledSpectrumVisualizer.UpdateFftDataCoroutineStarted += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStarted;
+            this.scaledSpectrumVisualizer.UpdateFftDataCoroutineStopped += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStopped;
         }
 
-        protected override void Start()
+        private void Start()
         {
 #if UNITY_EDITOR
             if (!EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
 #endif
 
-            base.Start();
-
-            GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, this.center.position, this.radius, this.cubePrefab.gameObject, this.cubesContainer);
+            GameObject cubes = SpawnRadialCubes((int)this.scaledSpectrumVisualizer.FftSize / 2, this.center.position, this.radius, this.cubePrefab.gameObject, this.cubesContainer);
             this.cubes = new EmissiveScaleUpObject[cubes.transform.childCount];
             for (int i = 0; i < this.cubes.Length; ++i)
                 this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
+            this.ResetCubes();
         }
 
-        protected virtual void Update()
+        private void Update()
         {
 #if UNITY_EDITOR
             if (!EditorApplication.isPlayingOrWillChangePlaymode)
@@ -131,54 +92,14 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 #endif
         }
 
-        protected float EqualizationFunction(int fftBandIndex, float fftBandValue)
+        private float LightsIntensityFunction(float value)
         {
-            float f = this.spectrumProvider.GetFrequency(fftBandIndex);
-
-            float gain = 1.0f;
-            const float k = 100.0f; // scale
-
-            switch (this.equalizationFunctionType)
-            {
-                case FunctionType.Gaussian:
-                    float gaussLowPeak = k * (this.gaussLowFreqGain - this.gaussHighFreqGain);
-                    double gaussVariance = Math.Pow(this.gaussStdDeviation, 2);
-                    gain = (float)(gaussLowPeak * Math.Exp(-Math.Pow(f / 1000.0, 2) / (2.0 * gaussVariance)) + k * this.gaussHighFreqGain);
-                    break;
-
-                case FunctionType.Logarithm:
-                    const double logBase = 10.0;
-                    float logScale = k * this.logSteepness;
-                    double lowFreqPow = Math.Pow(logBase, (this.logLowFreqGain * k) / logScale);
-                    double highFreqPow = Math.Pow(logBase, (this.logHighFreqGain * k) / logScale);
-                    gain = (float)(logScale * Math.Log((highFreqPow - lowFreqPow) * (f / (this.logHighFreq * 1000.0)) + lowFreqPow, logBase));
-                    break;
-            }
-            return fftBandValue * gain;
+            value = 2.35f * Mathf.Log10(2.0f * value + 1);
+            return float.IsNaN(value) || float.IsNegativeInfinity(value) ? 0.0f :
+                   float.IsPositiveInfinity(value) ? 1.0f : value;
         }
 
-        protected float LightsIntensityFunction(float value)
-        {
-            return 2.35f * Mathf.Log10(2.0f * value + 1);
-        }
-
-        private IEnumerator UpdateCubes()
-        {
-            yield return null;
-            float fftSizeRatio = (float)this.fftSize / (float)REFERENCE_FFTSIZE;
-            while (this.updateCubesCoroutine != null)
-            {
-                for (int i = 0; i < this.cubes.Length && i < this.fftDataBuffer.Length; ++i)
-                {
-                    float scaledFftValue = this.EqualizationFunction(i, this.fftDataBuffer[i]) * fftSizeRatio;
-                    this.cubes[i].ScaleSmooth(this.maxYScale < 0.0f ? scaledFftValue : Math.Min(scaledFftValue, this.maxYScale), true);
-                    this.cubes[i].SetLightsIntensity(this.LightsIntensityFunction(scaledFftValue / this.maxYScale));
-                }
-                yield return new WaitForSeconds(UPDATE_FFT_INTERVAL);
-            }
-        }
-
-        protected void ResetCubes()
+        private void ResetCubes()
         {
             if (this.cubes != null)
             {
@@ -190,34 +111,41 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             }
         }
 
-        private void RenameCubes(IReadOnlyList<ScaleUpObject> cubes)
+        private void RenameCubes(IReadOnlyList<ScaleUpObject> cubes = null)
         {
 #if UNITY_EDITOR
+            if (cubes == null)
+                cubes = this.cubes;
+
             if (cubes != null)
             {
+                SimpleSpectrumProvider spectrumProvider = this.scaledSpectrumVisualizer.SpectrumProvider;
                 for (int i = 0; i < cubes.Count; ++i)
-                    cubes[i].gameObject.name = $"Cube{i,-4} @ {this.spectrumProvider.GetFrequency(i),+5:N0}Hz";
+                    cubes[i].gameObject.name = $"Cube{i,-4} @ {spectrumProvider.GetFrequency(i),+5:N0}Hz";
             }
 #endif
         }
 
-        protected override void LoopbackAudioSource_DeviceChanged(object sender, MMDeviceChangedEventArgs e)
+        #region Event Handlers
+
+        private void ScaledSpectrumVisualizer_UpdateFftDataCoroutineStarted(object sender, EventArgs e)
         {
-            if (this.updateCubesCoroutine != null)
-            {
-                this.StopCoroutine(this.updateCubesCoroutine);
-                this.updateCubesCoroutine = null;
-            }
-
-            base.LoopbackAudioSource_DeviceChanged(sender, e);
-
-            this.ResetCubes();
-            if (e.Initialized)
-            {
-                this.RenameCubes(this.cubes);
-                this.updateCubesCoroutine = this.StartCoroutine(this.UpdateCubes());
-            }
+            this.RenameCubes();
         }
+
+        private void ScaledSpectrumVisualizer_UpdateFftDataCoroutineStopped(object sender, EventArgs e)
+        {
+            this.ResetCubes();
+        }
+
+        private void ScaledSpectrumVisualizer_FftBandScaled(object sender, FftBandScaledEventArgs e)
+        {
+            float clampedScaledValue = Math.Min(e.ScaledValue, this.maxYScale);
+            this.cubes[e.Index].ScaleSmooth(this.maxYScale < 0.0f ? e.ScaledValue : clampedScaledValue, true);
+            this.cubes[e.Index].SetLightsIntensity(this.LightsIntensityFunction(this.maxYScale < 0.0f ? e.ScaledValue / this.scaledSpectrumVisualizer.ScaledFftDataBuffer.Max() : clampedScaledValue / this.maxYScale));
+        }
+
+        #endregion Event Handlers
 
         /// <summary>
         /// Spaws cubes upon a circumference.
@@ -228,7 +156,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         /// <param name="cubePrefab"> Cubes template. </param>
         /// <param name="parent"> Parent of the cubes structure. </param>
         /// <returns> Returns the GameObject containing the cubes, whose parent is 'parent'. </returns>
-        protected static GameObject SpawnRadialCubes(int n, Vector3 center, float radius, GameObject cubePrefab, Transform parent = null)
+        private static GameObject SpawnRadialCubes(int n, Vector3 center, float radius, GameObject cubePrefab, Transform parent = null)
         {
             #region Maths
 
@@ -360,31 +288,30 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 this.LoadEditorOnlyScene();
             this.FindOrCreateEditorCubesContainer();
 
-            // Fake temporary spectrum provider
-            this.spectrumProvider = new SimpleSpectrumProvider(2, 48000, this.fftSize);
-
             // Create the cubes' parent inside the container in the EditorOnly scene
             this.editorCubes = null;
 
             if (this.cubePrefab != null)
             {
-                GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.editorCubesContainer.transform);
+                GameObject cubes = SpawnRadialCubes((int)this.scaledSpectrumVisualizer.FftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.editorCubesContainer.transform);
                 this.editorCubesContainer.name = EDITOR_CUBES_CONTAINER_NAME;
                 this.editorCubes = new EmissiveScaleUpObject[cubes.transform.childCount];
+
+                SimpleSpectrumProvider spectrumProvider = this.scaledSpectrumVisualizer.SpectrumProvider;
 
                 // Randomly create a plausible spectrum for preview.
                 for (int i = 0; i < this.editorCubes.Length; ++i)
                 {
                     this.editorCubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
 
-                    float currFreq = this.spectrumProvider.GetFrequency(i);
+                    float currFreq = spectrumProvider.GetFrequency(i);
                     float rndValue = (float)MathNet.Numerics.Random.MersenneTwister.Default.NextDouble();
                     float g1 = (float)(+0.0085 * Math.Exp(-Math.Pow(currFreq / 1000 - 2.25, 2) / (2 * 4.60 * 4.60)));
                     float g2 = (float)(-0.0005 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.00, 2) / (2 * 0.38 * 0.38)));
                     float g3 = (float)(+0.0046 * Math.Exp(-Math.Pow(currFreq / 1000 - 0.85, 2) / (2 * 0.85 * 0.85)));
                     float g4 = (float)(-0.0070 * Math.Exp(-Math.Pow(currFreq / 1000 - 3.50, 2) / (2 * 5.00 * 5.00)));
                     float gaussMult = Math.Abs(g1 + g2 + g3 + g4);
-                    float rndScaledValue = this.EqualizationFunction(i, rndValue * gaussMult);
+                    float rndScaledValue = this.scaledSpectrumVisualizer.SpectrumScalingFunction(i, rndValue * gaussMult);
                     this.editorCubes[i].Scale(this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale));
                     this.editorCubes[i].SetLightsIntensity(this.LightsIntensityFunction(rndScaledValue / this.maxYScale));
                 }
@@ -392,8 +319,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
                 this.UpdateEditorCubesParentContainer();
             }
-
-            this.spectrumProvider = null;
         }
 
         private void LoadEditorOnlyScene()
