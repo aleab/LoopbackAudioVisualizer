@@ -12,8 +12,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
     /// Implementation of <see cref="BaseSpectrumVisualizer"/>, which uses a parametric scaling function to get a scaled version of the spectrum.
     /// </summary>
     /// <see cref="BaseSpectrumVisualizer"/>
-    /// <see cref="IScaledSpectrumVisualizer"/>
-    public class ScaledSpectrumVisualizer : BaseSpectrumVisualizer, IScaledSpectrumVisualizer
+    /// <see cref="IScaledSpectrumDataProvider"/>
+    public class ScaledSpectrumVisualizer : BaseSpectrumVisualizer, IScaledSpectrumDataProvider
     {
         #region Inspector
 

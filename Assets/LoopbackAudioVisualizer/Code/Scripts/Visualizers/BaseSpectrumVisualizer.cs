@@ -43,9 +43,15 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         public SimpleSpectrumProvider SpectrumProvider { get { return this.spectrumProvider ?? new SimpleSpectrumProvider(2, 48000, this.fftSize); } }
 
+        #region Events
+
         public event EventHandler UpdateFftDataCoroutineStarted;
 
         public event EventHandler UpdateFftDataCoroutineStopped;
+
+        public event EventHandler FftDataBufferUpdated;
+
+        #endregion Events
 
         protected virtual void Start()
         {
@@ -75,6 +81,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
                     // Take the first N/2 values
                     for (int i = 0; i < this.fftDataBuffer.Length; ++i)
                         this.fftDataBuffer[i] = this.ProcessRawFftValue(this.rawFftDataBuffer[i], i);
+                    this.OnFftDataBufferUpdated();
                 }
 
                 yield return new WaitForSeconds(UPDATE_FFT_INTERVAL);
@@ -149,6 +156,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
             Array.Clear(this.rawFftDataBuffer, 0, this.rawFftDataBuffer.Length);
             Array.Clear(this.fftDataBuffer, 0, this.fftDataBuffer.Length);
             this.UpdateFftDataCoroutineStopped?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnFftDataBufferUpdated()
+        {
+            this.FftDataBufferUpdated?.Invoke(this, EventArgs.Empty);
         }
     }
 }

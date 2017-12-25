@@ -2,7 +2,7 @@
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 {
-    public interface IScaledSpectrumVisualizer
+    public interface IScaledSpectrumDataProvider
     {
         IReadOnlyCollection<float> ScaledFftDataBuffer { get; }
 

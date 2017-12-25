@@ -134,13 +134,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 118941931}
-  m_LocalRotation: {x: -0, y: 0.99999547, z: -0, w: 0.0030230265}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -4.5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1947435184}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 179.654, z: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &453720224
 GameObject:
   m_ObjectHideFlags: 0
@@ -431,7 +431,6 @@ GameObject:
   m_Component:
   - component: {fileID: 975967632}
   - component: {fileID: 975967633}
-  - component: {fileID: 975967631}
   m_Layer: 0
   m_Name: SpectrumVisualizer
   m_TagString: Untagged
@@ -439,36 +438,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &975967631
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 975967630}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2215e9572b95498b93caff21b68830db, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  scaledSpectrumVisualizer: {fileID: 975967633}
-  cubePrefab: {fileID: 1210950444}
-  cubesContainer: {fileID: 118941932}
-  center: {fileID: 118941932}
-  radius: 10
-  maxYScale: 11
 --- !u!4 &975967632
 Transform:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 975967630}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1959219371}
   m_Father: {fileID: 1947435184}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &975967633
 MonoBehaviour:
@@ -478,13 +460,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 975967630}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f366fdae2b242d0914cb64ae8306460, type: 3}
+  m_Script: {fileID: 11500000, guid: ae8b2e399e424c849b67de509308ea69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   fftSize: 512
   rawFftDataBuffer: []
   fftDataBuffer: []
-  equalizationFunctionType: 0
+  scalingFunctionType: 0
   gaussStdDeviation: 1.8
   gaussLowFreqGain: 4
   gaussHighFreqGain: 45
@@ -576,6 +558,52 @@ Transform:
   m_PrefabParentObject: {fileID: 4723939069097028, guid: 318332b9808b4264297da674c17eac2e,
     type: 2}
   m_PrefabInternal: {fileID: 1008103045}
+--- !u!1 &1058555428
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1058555429}
+  - component: {fileID: 1058555430}
+  m_Layer: 0
+  m_Name: Visualizer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1058555429
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1058555428}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1947435184}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1058555430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1058555428}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2215e9572b95498b93caff21b68830db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spectrumVisualizer: {fileID: 975967633}
+  cubePrefab: {fileID: 1210950444}
+  cubesContainer: {fileID: 118941932}
+  center: {fileID: 118941932}
+  radius: 10
+  maxYScale: 11
 --- !u!1001 &1210950443
 Prefab:
   m_ObjectHideFlags: 0
@@ -1227,6 +1255,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 1058555429}
   - {fileID: 975967632}
   - {fileID: 118941932}
   m_Father: {fileID: 0}
