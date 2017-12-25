@@ -35,6 +35,10 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         [SerializeField]
         [DisableWhenPlaying]
+        private Transform cubesContainer;
+
+        [SerializeField]
+        [DisableWhenPlaying]
         private Transform center;
 
         [SerializeField]
@@ -100,6 +104,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         {
             this.RequireField(nameof(this.cubePrefab), this.cubePrefab);
             this.RequireField(nameof(this.center), this.center);
+            if (this.cubesContainer == null)
+                this.cubesContainer = this.gameObject.transform;
         }
 
         protected override void Start()
@@ -111,7 +117,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
             base.Start();
 
-            GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
+            GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, this.center.position, this.radius, this.cubePrefab.gameObject, this.cubesContainer);
             this.cubes = new EmissiveScaleUpObject[cubes.transform.childCount];
             for (int i = 0; i < this.cubes.Length; ++i)
                 this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
@@ -302,40 +308,39 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             if (parent != null)
                 parent.localRotation = Quaternion.identity;
 
-            // Create the cubes container, child of parent
-            GameObject cubes = new GameObject($"{n}Cubes");
-            cubes.transform.parent = parent;
-            cubes.transform.localPosition = center;
+            GameObject cubesContainer = parent?.gameObject ?? new GameObject();
+            cubesContainer.name = $"{n}Cubes";
+            cubesContainer.transform.localPosition = center;
 
             // Create the cubes
             for (int i = 0; i < n; ++i)
             {
-                cubes.transform.localEulerAngles = new Vector3(0.0f, -deltaDegrees * i, 0.0f);
+                cubesContainer.transform.localEulerAngles = new Vector3(0.0f, -deltaDegrees * i, 0.0f);
 
                 GameObject cube = Instantiate(cubePrefab);
                 cube.name = $"Cube{i}";
                 cube.SetActive(true); // Awake it now, to let it store the prefab's original scale
                 cube.transform.localScale = new Vector3(squareSide, squareSide, squareSide);
-                cube.transform.position = cubes.transform.position + Vector3.forward * radius;
-                cube.transform.parent = cubes.transform;
+                cube.transform.position = cubesContainer.transform.position + Vector3.forward * radius;
+                cube.transform.parent = cubesContainer.transform;
             }
-            cubes.transform.localRotation = Quaternion.identity;
+            cubesContainer.transform.localRotation = Quaternion.identity;
 
             // Re-set parent's original local rotation
             if (parent != null)
                 parent.localRotation = parentRotation;
 
-            return cubes;
+            return cubesContainer;
         }
 
         #region ExecuteInEditMode
 
 #if UNITY_EDITOR
 
-        private const string EDITOR_CUBES_PARENT_CONTAINER_NAME = "EditorOnly_Cubes";
+        private const string EDITOR_CUBES_CONTAINER_NAME = "EditorOnly_Cubes";
 
         [NonSerialized]
-        private GameObject editorCubesParentContainer;
+        private GameObject editorCubesContainer;
 
         [NonSerialized]
         private EmissiveScaleUpObject[] editorCubes;
@@ -353,29 +358,24 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             // Load EditorOnly scene and find editorCubesParentContainer
             if (!Scenes.AudioVisualizer01_EditorOnly.IsLoaded())
                 this.LoadEditorOnlyScene();
-            this.FindOrCreateEditorCubesParentContainer();
+            this.FindOrCreateEditorCubesContainer();
 
             // Fake temporary spectrum provider
             this.spectrumProvider = new SimpleSpectrumProvider(2, 48000, this.fftSize);
 
             // Create the cubes' parent inside the container in the EditorOnly scene
             this.editorCubes = null;
-            Transform cubesParentTransform = this.editorCubesParentContainer.transform.Find("ExampleCubes");
-            GameObject cubesParent = cubesParentTransform?.gameObject;
-            if (cubesParent != null)
-                DestroyImmediate(cubesParent);
 
             if (this.cubePrefab != null)
             {
-                cubesParent = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.editorCubesParentContainer.transform);
-                cubesParent.name = "ExampleCubes";
-                cubesParent.AddComponent<UnityInspectorOnly>();
-                this.editorCubes = new EmissiveScaleUpObject[cubesParent.transform.childCount];
+                GameObject cubes = SpawnRadialCubes((int)this.fftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.editorCubesContainer.transform);
+                this.editorCubesContainer.name = EDITOR_CUBES_CONTAINER_NAME;
+                this.editorCubes = new EmissiveScaleUpObject[cubes.transform.childCount];
 
                 // Randomly create a plausible spectrum for preview.
                 for (int i = 0; i < this.editorCubes.Length; ++i)
                 {
-                    this.editorCubes[i] = cubesParent.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
+                    this.editorCubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
 
                     float currFreq = this.spectrumProvider.GetFrequency(i);
                     float rndValue = (float)MathNet.Numerics.Random.MersenneTwister.Default.NextDouble();
@@ -406,37 +406,37 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 // Create and save the scene
                 editorOnlyScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
                 SceneManager.SetActiveScene(editorOnlyScene);
-                this.FindOrCreateEditorCubesParentContainer();
+                this.FindOrCreateEditorCubesContainer();
                 SceneManager.SetActiveScene(currentScene);
                 EditorSceneManager.SaveScene(editorOnlyScene, Scenes.AudioVisualizer01_EditorOnly.Path);
             }
         }
 
-        private void FindOrCreateEditorCubesParentContainer()
+        private void FindOrCreateEditorCubesContainer()
         {
-            this.editorCubesParentContainer = GameObject.Find(EDITOR_CUBES_PARENT_CONTAINER_NAME);
-            if (this.editorCubesParentContainer == null)
+            this.editorCubesContainer = GameObject.Find(EDITOR_CUBES_CONTAINER_NAME);
+            if (this.editorCubesContainer == null)
             {
-                this.editorCubesParentContainer = new GameObject(EDITOR_CUBES_PARENT_CONTAINER_NAME)
+                this.editorCubesContainer = new GameObject(EDITOR_CUBES_CONTAINER_NAME)
                 {
-                    isStatic = true,
+                    isStatic = false,
                     transform = { parent = null }
                 };
-                this.editorCubesParentContainer.AddComponent<UnityInspectorOnly>();
+                this.editorCubesContainer.AddComponent<UnityInspectorOnly>();
             }
 
-            this.editorCubesParentContainer.transform.localPosition = Vector3.zero;
-            this.editorCubesParentContainer.transform.localRotation = Quaternion.identity;
-            this.editorCubesParentContainer.transform.localScale = Vector3.one;
+            this.editorCubesContainer.transform.localPosition = Vector3.zero;
+            this.editorCubesContainer.transform.localRotation = Quaternion.identity;
+            this.editorCubesContainer.transform.localScale = Vector3.one;
         }
 
         private void UpdateEditorCubesParentContainer()
         {
-            if (this.editorCubesParentContainer != null)
+            if (this.editorCubesContainer != null)
             {
-                this.editorCubesParentContainer.transform.position = this.gameObject.transform.position;
-                this.editorCubesParentContainer.transform.localRotation = this.gameObject.transform.localRotation;
-                this.editorCubesParentContainer.transform.localScale = this.gameObject.transform.localScale;
+                this.editorCubesContainer.transform.position = (this.cubesContainer ?? this.gameObject.transform).position;
+                this.editorCubesContainer.transform.localRotation = (this.cubesContainer ?? this.gameObject.transform).localRotation;
+                this.editorCubesContainer.transform.localScale = (this.cubesContainer ?? this.gameObject.transform).localScale;
             }
         }
 

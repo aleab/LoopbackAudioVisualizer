@@ -14,6 +14,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
     public class SpectrumVisualizerEditor : BaseSpectrumVisualizerEditor
     {
         private SerializedProperty cubePrefab;
+        private SerializedProperty cubesContainer;
         private SerializedProperty center;
         private SerializedProperty radius;
         private SerializedProperty maxYScale;
@@ -33,6 +34,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
             base.OnEnable();
 
             this.cubePrefab = this.serializedObject.FindProperty("cubePrefab");
+            this.cubesContainer = this.serializedObject.FindProperty("cubesContainer");
             this.center = this.serializedObject.FindProperty("center");
             this.radius = this.serializedObject.FindProperty("radius");
             this.maxYScale = this.serializedObject.FindProperty("maxYScale");
@@ -55,8 +57,9 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
 
             GUILayout.Space(16.0f);
             EditorExtension.DrawPropertyFieldSafe(this.cubePrefab, nameof(this.cubePrefab), new GUIContent("Cube Prefab"));
+            EditorExtension.DrawPropertyFieldSafe(this.cubesContainer, nameof(this.cubesContainer), new GUIContent("Cubes Containers"));
 
-            EditorExtension.DrawHeader("Cubes' circumference");
+            EditorExtension.DrawHeader("Circumference");
             EditorExtension.DrawPropertyFieldSafe(this.center, nameof(this.center), new GUIContent("Center", "The center of the circumference the cube-frequencies are going to be placed upon."));
             EditorExtension.DrawPropertyFieldSafe(this.radius, nameof(this.radius), new GUIContent("Radius", "The radius of the circumference the cubes-frequencies are going to be placed upon."));
 
