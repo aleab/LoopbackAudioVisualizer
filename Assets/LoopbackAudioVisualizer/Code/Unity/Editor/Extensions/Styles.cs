@@ -28,6 +28,11 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
         {
             alignment = TextAnchor.MiddleRight
         };
+
+        public static GUIStyle ItalicsBoldLabel { get; } = new GUIStyle(EditorStyles.boldLabel)
+        {
+            fontStyle = FontStyle.BoldAndItalic
+        };
     }
 }
 

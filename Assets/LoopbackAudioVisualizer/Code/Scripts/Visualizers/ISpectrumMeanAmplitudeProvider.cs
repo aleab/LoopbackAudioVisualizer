@@ -1,7 +1,14 @@
-﻿namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
+﻿using System;
+
+namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 {
+    /// <summary>
+    /// Provides a weighted mean of the spectrum's values.
+    /// </summary>
     public interface ISpectrumMeanAmplitudeProvider
     {
+        event EventHandler SpectrumMeanAmplitudeUpdated;
+
         /// <summary>
         /// An weighted mean of the values of the spectrum's samples.
         /// </summary>

@@ -79,10 +79,12 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             this.cubesMaterial.name += " (Instance)";
             this.cubePrefab.MeshRenderer.sharedMaterial = this.cubesMaterial;
 
-            this.spectrumVisualizer.FftBandScaled += this.ScaledSpectrumVisualizer_FftBandScaled;
-            this.spectrumVisualizer.FftDataBufferUpdated += this.SpectrumVisualizer_FftDataBufferUpdated;
             this.spectrumVisualizer.UpdateFftDataCoroutineStarted += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStarted;
             this.spectrumVisualizer.UpdateFftDataCoroutineStopped += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStopped;
+            this.spectrumVisualizer.FftBandScaled += this.ScaledSpectrumVisualizer_FftBandScaled;
+            this.spectrumVisualizer.FftDataBufferUpdated += this.SpectrumVisualizer_FftDataBufferUpdated;
+            this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+            this.spectrumVisualizer.BandValueCalculated += this.SpectrumVisualizer_BandValueCalculated;
         }
 
         private void Start()
@@ -186,7 +188,16 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         private void SpectrumVisualizer_FftDataBufferUpdated(object sender, EventArgs e)
         {
+        }
+
+        private void SpectrumVisualizer_SpectrumMeanAmplitudeUpdated(object sender, EventArgs e)
+        {
             this.UpdateCubesEmissionValue();
+        }
+
+        private void SpectrumVisualizer_BandValueCalculated(object sender, BandValueCalculatedEventArgs e)
+        {
+            // TODO: reduced bands visualizer
         }
 
         #endregion Event Handlers
