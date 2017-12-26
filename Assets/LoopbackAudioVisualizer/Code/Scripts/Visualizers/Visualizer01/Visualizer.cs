@@ -4,6 +4,7 @@ using MathNet.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Aleab.LoopbackAudioVisualizer.Common;
 using Aleab.LoopbackAudioVisualizer.Unity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -31,7 +32,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         [SerializeField]
         [DisableWhenPlaying]
-        private ScaleUpObject cubePrefab;
+        private EmissiveScaleUpObject cubePrefab;
 
         [SerializeField]
         [DisableWhenPlaying]
@@ -54,6 +55,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         #endregion Inspector
 
+        private Material cubesMaterial;
+
         private EmissiveScaleUpObject[] cubes;
 
         private void Awake()
@@ -65,7 +68,19 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             if (this.cubesContainer == null)
                 this.cubesContainer = this.gameObject.transform;
 
+#if UNITY_EDITOR
+            // If ExecuteInEditMode
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+                return;
+#endif
+
+            // Apply a copy of the shared material to the cube prefab
+            this.cubesMaterial = new Material(this.cubePrefab.MeshRenderer.sharedMaterial);
+            this.cubesMaterial.name += " (Instance)";
+            this.cubePrefab.MeshRenderer.sharedMaterial = this.cubesMaterial;
+
             this.spectrumVisualizer.FftBandScaled += this.ScaledSpectrumVisualizer_FftBandScaled;
+            this.spectrumVisualizer.FftDataBufferUpdated += this.SpectrumVisualizer_FftDataBufferUpdated;
             this.spectrumVisualizer.UpdateFftDataCoroutineStarted += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStarted;
             this.spectrumVisualizer.UpdateFftDataCoroutineStopped += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStopped;
         }
@@ -90,9 +105,18 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         private float LightsIntensityFunction(float value)
         {
-            value = 2.35f * Mathf.Log10(2.0f * value + 1);
+            value = 1.8f * Mathf.Log10(2.6f * value + 1);
             return float.IsNaN(value) || float.IsNegativeInfinity(value) ? 0.0f :
                    float.IsPositiveInfinity(value) ? 1.0f : value;
+        }
+
+        private float CubesEmissionValueFunction(float value)
+        {
+            const double k = 0.75;
+            const float minValue = 0.40f;
+            const float maxValue = 0.84f;
+            value = (float)(k * Math.Log10((Math.Pow(10.0, 1 / k) - 1.0) * value + 1.0));
+            return minValue + (maxValue - minValue) * value;
         }
 
         private void ResetCubes()
@@ -122,6 +146,23 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 #endif
         }
 
+        private void UpdateCubesEmissionValue()
+        {
+            if (this.cubes != null && this.cubes.Length > 0)
+            {
+                float maxSpectrumValue = this.spectrumVisualizer.ScaledFftDataBuffer.Max();
+                float normalizedSpectrumAverageAmplitude = this.spectrumVisualizer.SpectrumMeanAmplitude / (this.maxYScale <= 0.0f ? maxSpectrumValue : this.maxYScale);
+
+                if (this.cubePrefab.UseSharedMaterial)
+                    this.cubes[0].SetEmissionColor(HSVChannel.Value, this.CubesEmissionValueFunction(normalizedSpectrumAverageAmplitude));
+                else
+                {
+                    foreach (var cube in this.cubes)
+                        cube.SetEmissionColor(HSVChannel.Value, this.CubesEmissionValueFunction(normalizedSpectrumAverageAmplitude));
+                }
+            }
+        }
+
         #region Event Handlers
 
         private void ScaledSpectrumVisualizer_UpdateFftDataCoroutineStarted(object sender, EventArgs e)
@@ -137,8 +178,15 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private void ScaledSpectrumVisualizer_FftBandScaled(object sender, FftBandScaledEventArgs e)
         {
             float clampedScaledValue = Math.Min(e.ScaledValue, this.maxYScale);
+            float maxSpectrumValue = this.spectrumVisualizer.ScaledFftDataBuffer.Max();
+
             this.cubes[e.Index].ScaleSmooth(this.maxYScale < 0.0f ? e.ScaledValue : clampedScaledValue, true);
-            this.cubes[e.Index].SetLightsIntensity(this.LightsIntensityFunction(this.maxYScale < 0.0f ? e.ScaledValue / this.spectrumVisualizer.ScaledFftDataBuffer.Max() : clampedScaledValue / this.maxYScale));
+            this.cubes[e.Index].SetLightsIntensity(this.LightsIntensityFunction(this.maxYScale < 0.0f ? e.ScaledValue / maxSpectrumValue : clampedScaledValue / this.maxYScale));
+        }
+
+        private void SpectrumVisualizer_FftDataBufferUpdated(object sender, EventArgs e)
+        {
+            this.UpdateCubesEmissionValue();
         }
 
         #endregion Event Handlers
@@ -312,8 +360,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                     float g4 = (float)(-0.0070 * Math.Exp(-Math.Pow(currFreq / 1000 - 3.50, 2) / (2 * 5.00 * 5.00)));
                     float gaussMult = Math.Abs(g1 + g2 + g3 + g4);
                     float rndScaledValue = this.spectrumVisualizer.SpectrumScalingFunction(i, rndValue * gaussMult);
+                    float clampedScaledValue = Math.Min(rndScaledValue, this.maxYScale);
                     this.editorCubes[i].Scale(this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale));
-                    this.editorCubes[i].SetLightsIntensity(this.LightsIntensityFunction(rndScaledValue / this.maxYScale));
+                    this.editorCubes[i].SetLightsIntensity(this.LightsIntensityFunction(this.maxYScale < 0.0f ? rndScaledValue / this.spectrumVisualizer.ScaledFftDataBuffer.Max() : clampedScaledValue / this.maxYScale));
                 }
                 this.RenameCubes(this.editorCubes);
 

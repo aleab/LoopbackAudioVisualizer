@@ -12,7 +12,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 #pragma warning disable 0414, 0649
 
         [SerializeField]
-        protected MeshRenderer meshRenderer;
+        private MeshRenderer meshRenderer;
 
         [SerializeField]
         [Range(0.0f, float.MaxValue)]
@@ -29,6 +29,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         protected Vector3 initialScale;
 
         private Coroutine scaleSmoothCoroutine;
+
+        public MeshRenderer MeshRenderer { get { return this.meshRenderer; } }
 
         public float MinimumScale { get { return this.minimumScale; } }
 

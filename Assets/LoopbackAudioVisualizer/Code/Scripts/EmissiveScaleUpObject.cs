@@ -1,5 +1,4 @@
-﻿using System;
-using Aleab.LoopbackAudioVisualizer.Common;
+﻿using Aleab.LoopbackAudioVisualizer.Common;
 using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Unity;
 using UnityEditor;
@@ -39,12 +38,14 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private float bottomLightOriginalIntensity;
 
+        public bool UseSharedMaterial { get { return this.useSharedMaterial; } }
+
         public Color[] CurrentColors { get { return new[] { this.baseColor, this.emissionColor }; } }
 
         protected override void Awake()
         {
             base.Awake();
-            
+
             this.RequireField(nameof(this.bottomLight), this.bottomLight);
 
             // Lights
@@ -58,7 +59,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 #endif
 
             // Material
-            this.material = this.useSharedMaterial ? this.meshRenderer.sharedMaterial : this.meshRenderer.materials[0];
+            this.material = this.useSharedMaterial ? this.MeshRenderer.sharedMaterial : this.MeshRenderer.materials[0];
             this.material.EnableKeyword("_EMISSION");
         }
 
@@ -161,8 +162,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         private void StartForEditMode()
         {
             // Colors
-            this.baseColor = this.meshRenderer.sharedMaterial.color;
-            this.emissionColor = this.meshRenderer.sharedMaterial.GetColor("_EmissionColor");
+            this.baseColor = this.MeshRenderer.sharedMaterial.color;
+            this.emissionColor = this.MeshRenderer.sharedMaterial.GetColor("_EmissionColor");
 
             // Lights
             double currentInitialScalesRatio = (double)Mathf.Max(this.gameObject.transform.localScale.x, this.gameObject.transform.localScale.z) / Mathf.Max(this.initialScale.x, this.initialScale.z);

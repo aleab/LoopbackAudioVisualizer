@@ -660,21 +660,21 @@ Prefab:
     - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
         type: 2}
       propertyPath: m_Color.r
-      value: 0.518
+      value: 0.669
       objectReference: {fileID: 0}
     - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
         type: 2}
       propertyPath: m_Color.g
-      value: 0.48032725
+      value: 0.5429521
       objectReference: {fileID: 0}
     - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
         type: 2}
       propertyPath: m_Color.b
-      value: 0.18129998
+      value: 0.20251727
       objectReference: {fileID: 0}
     - target: {fileID: 4267560615420426, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 1.2
+      value: 1.125
       objectReference: {fileID: 0}
     - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
         type: 2}
@@ -698,6 +698,11 @@ Prefab:
     - target: {fileID: 1488638041540704, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
       propertyPath: m_Name
       value: TemplateCube
+      objectReference: {fileID: 0}
+    - target: {fileID: 65970926723865096, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
