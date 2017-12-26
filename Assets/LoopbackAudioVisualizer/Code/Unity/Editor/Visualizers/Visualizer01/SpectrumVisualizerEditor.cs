@@ -27,7 +27,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
             {
                 EditorGUILayout.Space();
                 EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.FloatField(new GUIContent("Avg. Amplitude"), this.spectrumVisualizer.SpectrumAverageAmplitude);
+                EditorGUILayout.FloatField(new GUIContent("Avg. Amplitude"), this.spectrumVisualizer.SpectrumMeanAmplitude);
                 EditorGUI.EndDisabledGroup();
             }
 
