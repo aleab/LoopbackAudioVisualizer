@@ -30,43 +30,43 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         [DisableWhenPlaying]
         private SpectrumVisualizer spectrumVisualizer;
 
-        [SerializeField]
-        [DisableWhenPlaying]
-        private EmissiveScaleUpObject cubePrefab;
+        #region Circumference Spectrum
 
         [SerializeField]
         [DisableWhenPlaying]
-        private Transform cubesContainer;
+        private EmissiveScaleUpObject circCubeTemplate;
 
         [SerializeField]
         [DisableWhenPlaying]
-        private Transform center;
+        private Transform circCubesContainer;
+
+        [SerializeField]
+        [DisableWhenPlaying]
+        private Transform circCenter;
 
         [SerializeField]
         [DisableWhenPlaying]
         [Range(1.0f, 100.0f)]
-        private float radius = 11.0f;
+        private float circRadius = 10.0f;
 
         [SerializeField]
         [Range(0.0f, 500.0f)]
-        private float maxYScale = 11.0f;
+        private float circCubeMaxHeight = 12.0f;
+
+        #endregion Circumference Spectrum
 
 #pragma warning restore 0414, 0649
 
         #endregion Inspector
 
-        private Material cubesMaterial;
-
-        private EmissiveScaleUpObject[] cubes;
-
         private void Awake()
         {
             this.RequireField(nameof(this.spectrumVisualizer), this.spectrumVisualizer);
-            this.RequireField(nameof(this.cubePrefab), this.cubePrefab);
-            this.RequireField(nameof(this.center), this.center);
+            this.RequireField(nameof(this.circCubeTemplate), this.circCubeTemplate);
+            this.RequireField(nameof(this.circCenter), this.circCenter);
 
-            if (this.cubesContainer == null)
-                this.cubesContainer = this.gameObject.transform;
+            if (this.circCubesContainer == null)
+                this.circCubesContainer = this.gameObject.transform;
 
 #if UNITY_EDITOR
             // If ExecuteInEditMode
@@ -75,9 +75,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 #endif
 
             // Apply a copy of the shared material to the cube prefab
-            this.cubesMaterial = new Material(this.cubePrefab.MeshRenderer.sharedMaterial);
-            this.cubesMaterial.name += " (Instance)";
-            this.cubePrefab.MeshRenderer.sharedMaterial = this.cubesMaterial;
+            this.circCubesMaterial = new Material(this.circCubeTemplate.MeshRenderer.sharedMaterial);
+            this.circCubesMaterial.name += " (Instance)";
+            this.circCubeTemplate.MeshRenderer.sharedMaterial = this.circCubesMaterial;
 
             this.spectrumVisualizer.UpdateFftDataCoroutineStarted += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStarted;
             this.spectrumVisualizer.UpdateFftDataCoroutineStopped += this.ScaledSpectrumVisualizer_UpdateFftDataCoroutineStopped;
@@ -98,21 +98,27 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             }
 #endif
 
-            GameObject cubes = SpawnRadialCubes((int)this.spectrumVisualizer.FftSize / 2, this.center.position, this.radius, this.cubePrefab.gameObject, this.cubesContainer);
-            this.cubes = new EmissiveScaleUpObject[cubes.transform.childCount];
-            for (int i = 0; i < this.cubes.Length; ++i)
-                this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
-            this.ResetCubes();
+            GameObject cubes = SpawnCircCubes((int)this.spectrumVisualizer.FftSize / 2, this.circCenter.position, this.circRadius, this.circCubeTemplate.gameObject, this.circCubesContainer);
+            this.circCubes = new EmissiveScaleUpObject[cubes.transform.childCount];
+            for (int i = 0; i < this.circCubes.Length; ++i)
+                this.circCubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<EmissiveScaleUpObject>();
+            this.ResetCircCubes();
         }
 
-        private float LightsIntensityFunction(float value)
+        #region { Circumference Spectrum }
+
+        private Material circCubesMaterial;
+
+        private EmissiveScaleUpObject[] circCubes;
+
+        private float CircCubesLightsIntensityFunction(float value)
         {
             value = 1.8f * Mathf.Log10(2.6f * value + 1);
             return float.IsNaN(value) || float.IsNegativeInfinity(value) ? 0.0f :
                    float.IsPositiveInfinity(value) ? 1.0f : value;
         }
 
-        private float CubesEmissionValueFunction(float value)
+        private float CircCubesEmissionValueFunction(float value)
         {
             const double k = 0.75;
             const float minValue = 0.40f;
@@ -121,23 +127,23 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             return minValue + (maxValue - minValue) * value;
         }
 
-        private void ResetCubes()
+        private void ResetCircCubes()
         {
-            if (this.cubes != null)
+            if (this.circCubes != null)
             {
-                foreach (var cube in this.cubes)
+                foreach (var cube in this.circCubes)
                 {
                     cube.Scale(cube.MinimumScale);
-                    cube.SetLightsIntensity(this.LightsIntensityFunction(0.0f));
+                    cube.SetLightsIntensity(this.CircCubesLightsIntensityFunction(0.0f));
                 }
             }
         }
 
-        private void RenameCubes(IReadOnlyList<ScaleUpObject> cubes = null)
+        private void RenameCircCubes(IReadOnlyList<ScaleUpObject> cubes = null)
         {
 #if UNITY_EDITOR
             if (cubes == null)
-                cubes = this.cubes;
+                cubes = this.circCubes;
 
             if (cubes != null)
             {
@@ -148,42 +154,44 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 #endif
         }
 
-        private void UpdateCubesEmissionValue()
+        private void UpdateCircCubesEmissionValue()
         {
-            if (this.cubes != null && this.cubes.Length > 0)
+            if (this.circCubes != null && this.circCubes.Length > 0)
             {
                 float maxSpectrumValue = this.spectrumVisualizer.ScaledFftDataBuffer.Max();
-                float normalizedSpectrumAverageAmplitude = this.spectrumVisualizer.SpectrumMeanAmplitude / (this.maxYScale <= 0.0f ? maxSpectrumValue : this.maxYScale);
+                float normalizedSpectrumAverageAmplitude = this.spectrumVisualizer.SpectrumMeanAmplitude / (this.circCubeMaxHeight <= 0.0f ? maxSpectrumValue : this.circCubeMaxHeight);
 
-                if (this.cubePrefab.UseSharedMaterial)
-                    this.cubes[0].SetEmissionColor(HSVChannel.Value, this.CubesEmissionValueFunction(normalizedSpectrumAverageAmplitude));
+                if (this.circCubeTemplate.UseSharedMaterial)
+                    this.circCubes[0].SetEmissionColor(HSVChannel.Value, this.CircCubesEmissionValueFunction(normalizedSpectrumAverageAmplitude));
                 else
                 {
-                    foreach (var cube in this.cubes)
-                        cube.SetEmissionColor(HSVChannel.Value, this.CubesEmissionValueFunction(normalizedSpectrumAverageAmplitude));
+                    foreach (var cube in this.circCubes)
+                        cube.SetEmissionColor(HSVChannel.Value, this.CircCubesEmissionValueFunction(normalizedSpectrumAverageAmplitude));
                 }
             }
         }
+
+        #endregion { Circumference Spectrum }
 
         #region Event Handlers
 
         private void ScaledSpectrumVisualizer_UpdateFftDataCoroutineStarted(object sender, EventArgs e)
         {
-            this.RenameCubes();
+            this.RenameCircCubes();
         }
 
         private void ScaledSpectrumVisualizer_UpdateFftDataCoroutineStopped(object sender, EventArgs e)
         {
-            this.ResetCubes();
+            this.ResetCircCubes();
         }
 
         private void ScaledSpectrumVisualizer_FftBandScaled(object sender, FftBandScaledEventArgs e)
         {
-            float clampedScaledValue = Math.Min(e.ScaledValue, this.maxYScale);
+            float clampedScaledValue = Math.Min(e.ScaledValue, this.circCubeMaxHeight);
             float maxSpectrumValue = this.spectrumVisualizer.ScaledFftDataBuffer.Max();
 
-            this.cubes[e.Index].ScaleSmooth(this.maxYScale < 0.0f ? e.ScaledValue : clampedScaledValue, true);
-            this.cubes[e.Index].SetLightsIntensity(this.LightsIntensityFunction(this.maxYScale < 0.0f ? e.ScaledValue / maxSpectrumValue : clampedScaledValue / this.maxYScale));
+            this.circCubes[e.Index].ScaleSmooth(this.circCubeMaxHeight <= 0.0f ? e.ScaledValue : clampedScaledValue, true);
+            this.circCubes[e.Index].SetLightsIntensity(this.CircCubesLightsIntensityFunction(this.circCubeMaxHeight <= 0.0f ? e.ScaledValue / maxSpectrumValue : clampedScaledValue / this.circCubeMaxHeight));
         }
 
         private void SpectrumVisualizer_FftDataBufferUpdated(object sender, EventArgs e)
@@ -192,7 +200,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         private void SpectrumVisualizer_SpectrumMeanAmplitudeUpdated(object sender, EventArgs e)
         {
-            this.UpdateCubesEmissionValue();
+            this.UpdateCircCubesEmissionValue();
         }
 
         private void SpectrumVisualizer_BandValueCalculated(object sender, BandValueCalculatedEventArgs e)
@@ -211,7 +219,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         /// <param name="cubePrefab"> Cubes template. </param>
         /// <param name="parent"> Parent of the cubes structure. </param>
         /// <returns> Returns the GameObject containing the cubes, whose parent is 'parent'. </returns>
-        private static GameObject SpawnRadialCubes(int n, Vector3 center, float radius, GameObject cubePrefab, Transform parent = null)
+        private static GameObject SpawnCircCubes(int n, Vector3 center, float radius, GameObject cubePrefab, Transform parent = null)
         {
             #region Maths
 
@@ -350,9 +358,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             // Create the cubes' parent inside the container in the EditorOnly scene
             this.editorCubes = null;
 
-            if (this.cubePrefab != null)
+            if (this.circCubeTemplate != null)
             {
-                GameObject cubes = SpawnRadialCubes((int)this.spectrumVisualizer.FftSize / 2, Vector3.zero, this.radius, this.cubePrefab.gameObject, this.editorCubesContainer.transform);
+                GameObject cubes = SpawnCircCubes((int)this.spectrumVisualizer.FftSize / 2, Vector3.zero, this.circRadius, this.circCubeTemplate.gameObject, this.editorCubesContainer.transform);
                 this.editorCubesContainer.name = EDITOR_CUBES_CONTAINER_NAME;
                 this.editorCubes = new EmissiveScaleUpObject[cubes.transform.childCount];
 
@@ -371,11 +379,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                     float g4 = (float)(-0.0070 * Math.Exp(-Math.Pow(currFreq / 1000 - 3.50, 2) / (2 * 5.00 * 5.00)));
                     float gaussMult = Math.Abs(g1 + g2 + g3 + g4);
                     float rndScaledValue = this.spectrumVisualizer.SpectrumScalingFunction(i, rndValue * gaussMult);
-                    float clampedScaledValue = Math.Min(rndScaledValue, this.maxYScale);
-                    this.editorCubes[i].Scale(this.maxYScale < 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.maxYScale));
-                    this.editorCubes[i].SetLightsIntensity(this.LightsIntensityFunction(this.maxYScale < 0.0f ? rndScaledValue / this.spectrumVisualizer.ScaledFftDataBuffer.Max() : clampedScaledValue / this.maxYScale));
+                    float clampedScaledValue = Math.Min(rndScaledValue, this.circCubeMaxHeight);
+                    this.editorCubes[i].Scale(this.circCubeMaxHeight <= 0.0f ? rndScaledValue : Math.Min(rndScaledValue, this.circCubeMaxHeight));
+                    this.editorCubes[i].SetLightsIntensity(this.CircCubesLightsIntensityFunction(this.circCubeMaxHeight <= 0.0f ? rndScaledValue / this.spectrumVisualizer.ScaledFftDataBuffer.Max() : clampedScaledValue / this.circCubeMaxHeight));
                 }
-                this.RenameCubes(this.editorCubes);
+                this.RenameCircCubes(this.editorCubes);
 
                 this.UpdateEditorCubesParentContainer();
             }
@@ -419,9 +427,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         {
             if (this.editorCubesContainer != null)
             {
-                this.editorCubesContainer.transform.position = (this.cubesContainer ?? this.gameObject.transform).position;
-                this.editorCubesContainer.transform.localRotation = (this.cubesContainer ?? this.gameObject.transform).localRotation;
-                this.editorCubesContainer.transform.localScale = (this.cubesContainer ?? this.gameObject.transform).localScale;
+                this.editorCubesContainer.transform.position = (this.circCubesContainer ?? this.gameObject.transform).position;
+                this.editorCubesContainer.transform.localRotation = (this.circCubesContainer ?? this.gameObject.transform).localRotation;
+                this.editorCubesContainer.transform.localScale = (this.circCubesContainer ?? this.gameObject.transform).localScale;
             }
         }
 

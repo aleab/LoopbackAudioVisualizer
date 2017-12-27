@@ -601,11 +601,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spectrumVisualizer: {fileID: 975967633}
-  cubePrefab: {fileID: 1210950444}
-  cubesContainer: {fileID: 118941932}
-  center: {fileID: 118941932}
-  radius: 10
-  maxYScale: 11
+  circCubeTemplate: {fileID: 1210950444}
+  circCubesContainer: {fileID: 118941932}
+  circCenter: {fileID: 118941932}
+  circRadius: 10
+  circCubeMaxHeight: 12
 --- !u!1001 &1210950443
 Prefab:
   m_ObjectHideFlags: 0

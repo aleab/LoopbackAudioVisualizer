@@ -33,6 +33,17 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
         {
             fontStyle = FontStyle.BoldAndItalic
         };
+
+        public static GUIStyle FoldoutWithBoldLabel { get; } = new GUIStyle(EditorStyles.foldout)
+        {
+            fontStyle = FontStyle.Bold
+        };
+
+        public static GUIStyle HelpBoxForFoldout { get; } = new GUIStyle(EditorStyles.helpBox)
+        {
+            margin = new RectOffset(EditorStyles.foldout.margin.left, EditorStyles.foldout.margin.right, EditorStyles.foldout.margin.top, EditorStyles.foldout.margin.bottom),
+            padding = new RectOffset(EditorStyles.foldout.padding.left, EditorStyles.foldout.padding.right, EditorStyles.foldout.padding.top, EditorStyles.foldout.padding.bottom)
+        };
     }
 }
 
