@@ -24,6 +24,8 @@ namespace Aleab.LoopbackAudioVisualizer.Unity
         {
             if (property.propertyType == SerializedPropertyType.Float)
                 EditorGUI.Slider(position, property, this.min, this.max, label);
+            else if (property.propertyType == SerializedPropertyType.Integer)
+                EditorGUI.IntSlider(position, property, (int)this.min, (int)this.max, label);
             else
                 EditorGUI.LabelField(position, label.text, "Use Range with float or int.");
             return true;

@@ -123,7 +123,7 @@ GameObject:
   m_Component:
   - component: {fileID: 118941932}
   m_Layer: 0
-  m_Name: Cubes
+  m_Name: CircumferenceCubes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -142,6 +142,34 @@ Transform:
   m_Father: {fileID: 1947435184}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!1 &269395187
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 269395188}
+  m_Layer: 0
+  m_Name: EllipseCubes
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &269395188
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 269395187}
+  m_LocalRotation: {x: 0, y: 0.69465834, z: 0, w: 0.71933985}
+  m_LocalPosition: {x: -5.5, y: 0, z: 0.06}
+  m_LocalScale: {x: 0.75, y: 1, z: 0.65}
+  m_Children: []
+  m_Father: {fileID: 1947435184}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 88, z: 0}
 --- !u!1 &453720224
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,6 +300,136 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1001 &684274017
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 975967632}
+    m_Modifications:
+    - target: {fileID: 23221813278636028, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: af96db73bcd4273499343b929be15180, type: 2}
+    - target: {fileID: 1488638041540704, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114150206545888826, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: smoothScaleDuration
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_RenderMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Intensity
+      value: 4.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Range
+      value: 7.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114150206545888826, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: useSharedMaterial
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: m_Color.r
+      value: 0.518
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: m_Color.g
+      value: 0.48032725
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: m_Color.b
+      value: 0.18129998
+      objectReference: {fileID: 0}
+    - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Color.r
+      value: 0.669
+      objectReference: {fileID: 0}
+    - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Color.g
+      value: 0.5429521
+      objectReference: {fileID: 0}
+    - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Color.b
+      value: 0.20251727
+      objectReference: {fileID: 0}
+    - target: {fileID: 4267560615420426, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 1.125
+      objectReference: {fileID: 0}
+    - target: {fileID: 108444560008846088, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114150206545888826, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: minLightIntensity
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: 114150206545888826, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: maxLightIntensity
+      value: 1.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 1488638041540704, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+      propertyPath: m_Name
+      value: TemplateEllipseCube
+      objectReference: {fileID: 0}
+    - target: {fileID: 65970926723865096, guid: b25605e7d07e5d6409263aba11dce584,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055142380277752, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055142380277752, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055142380277752, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055142380277752, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
+  m_IsPrefabParent: 0
+--- !u!4 &684274018 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 4055142380277752, guid: b25605e7d07e5d6409263aba11dce584,
+    type: 2}
+  m_PrefabInternal: {fileID: 684274017}
+--- !u!114 &684274019 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114150206545888826, guid: b25605e7d07e5d6409263aba11dce584,
+    type: 2}
+  m_PrefabInternal: {fileID: 684274017}
+  m_Script: {fileID: 11500000, guid: b5d13f504fc2425f98f30bf1bb7dd503, type: 3}
 --- !u!1 &808539090
 GameObject:
   m_ObjectHideFlags: 0
@@ -450,6 +608,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1959219371}
+  - {fileID: 684274018}
   m_Father: {fileID: 1947435184}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -606,6 +765,13 @@ MonoBehaviour:
   circCenter: {fileID: 118941932}
   circRadius: 10
   circCubeMaxHeight: 12
+  ellipseCubeTemplate: {fileID: 684274019}
+  ellipseCubesContainer: {fileID: 269395188}
+  ellipseCenter: {fileID: 269395188}
+  ellipseSemiMinorAxisLength: 6
+  ellipseChordLength: 12
+  ellipseArcDegree: 110
+  ellipseCubeMaxHeight: 5
 --- !u!1001 &1210950443
 Prefab:
   m_ObjectHideFlags: 0
@@ -699,7 +865,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1488638041540704, guid: b25605e7d07e5d6409263aba11dce584, type: 2}
       propertyPath: m_Name
-      value: TemplateCube
+      value: TemplateCircCube
       objectReference: {fileID: 0}
     - target: {fileID: 65970926723865096, guid: b25605e7d07e5d6409263aba11dce584,
         type: 2}
@@ -1265,6 +1431,7 @@ Transform:
   - {fileID: 1058555429}
   - {fileID: 975967632}
   - {fileID: 118941932}
+  - {fileID: 269395188}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

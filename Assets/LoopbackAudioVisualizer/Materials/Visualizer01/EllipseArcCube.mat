@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: FrequencyCube
+  m_Name: EllipseArcCube
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: _EMISSION
   m_LightmapFlags: 1
@@ -76,6 +76,6 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.885, g: 0.6216997, b: 0.25665003, a: 1}
-    - _EmissionColor: {r: 0.597, g: 0.51670295, b: 0.18447301, a: 1}
+    - _Color: {r: 0.879, g: 0.2585294, b: 0.46289945, a: 1}
+    - _EmissionColor: {r: 0.5, g: 0.21450001, b: 0.24790108, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
