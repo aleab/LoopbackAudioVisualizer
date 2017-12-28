@@ -37,7 +37,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4600260212578034}
-  - component: {fileID: 114671697588047362}
+  - component: {fileID: 114008161900288578}
   m_Layer: 0
   m_Name: ScaleUpCube
   m_TagString: Untagged
@@ -125,7 +125,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &114671697588047362
+--- !u!114 &114008161900288578
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -136,4 +136,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfaec0a3601e4c6ebed870cbbbb2f230, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshFilter: {fileID: 33670197285778612}
+  meshRenderer: {fileID: 23693051846240698}
+  minimumScale: 0.05
+  smoothScaleDuration: 50

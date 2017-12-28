@@ -1,8 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
+
+#if UNITY_EDITOR
+
+using UnityEditor;
+
+#endif
 
 namespace Aleab.LoopbackAudioVisualizer.Helpers
 {
@@ -12,6 +17,8 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
         {
             return (int)Mathf.Pow(2, Mathf.Round(Mathf.Log(n) / Mathf.Log(2)));
         }
+
+#if UNITY_EDITOR
 
         [SuppressMessage("ReSharper", "RedundantCaseLabel"), SuppressMessage("ReSharper", "EmptyGeneralCatchClause")]
         public static void ClearValues(this SerializedProperty property)
@@ -116,8 +123,6 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
             Debug.unityLogger.logEnabled = true;
             Debug.unityLogger.logHandler = logHandler;
         }
-
-#if UNITY_EDITOR
 
         public static void ClearConsole()
         {

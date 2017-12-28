@@ -1,6 +1,4 @@
-﻿using Aleab.LoopbackAudioVisualizer.Helpers;
-using System;
-using System.Linq;
+﻿using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -29,8 +27,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         #endregion Singleton
 
-        private Camera mainCamera;
-
         public event EventHandler StartupCompleted;
 
         private void Awake()
@@ -44,50 +40,19 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             }
 
             DontDestroyOnLoad(this.gameObject);
-
-            this.mainCamera = FindObjectsOfType<Camera>().Single(camera => camera.CompareTag("MainCamera"));
         }
 
         private void Start()
         {
-            if (SceneManager.GetActiveScene().buildIndex != 0)
-            {
-                this.LoadScenesInTheRightOrder();
-                return;
-            }
-
-            Preferences.Load();
             SceneManager.sceneLoaded += this.SceneManager_SceneLoaded;
 
-#if DEBUG
-            SceneManager.LoadScene(1, LoadSceneMode.Additive);
+            Preferences.Load();
+
+#if DEBUG && UNITY_EDITOR
+            Scenes.AudioVisualizer01.Load(LoadSceneMode.Additive);
 #endif
 
             this.OnStartupCompleted();
-        }
-
-        private void LoadScenesInTheRightOrder()
-        {
-            _instance = null;
-            GameObject go = new GameObject(@"\__TEMP__/ [LoadScenesInTheRightOrder] \__TEMP__/");
-            MonoBehaviour behaviour = go.AddComponent<NoBehaviour>();
-            DontDestroyOnLoad(go);
-            behaviour.Invoke(LoadScenesInTheRightOrder, SceneManager.GetActiveScene(), go, 0.1f);
-
-            Destroy(this.gameObject);
-        }
-
-        private static void LoadScenesInTheRightOrder(Scene currentScene, GameObject gameObject)
-        {
-            var operation = SceneManager.LoadSceneAsync(0, LoadSceneMode.Single);
-            operation.allowSceneActivation = true;
-            operation.completed += asyncOperation =>
-            {
-                Destroy(gameObject);
-#if UNITY_EDITOR
-                Helpers.Helpers.ClearConsole();
-#endif
-            };
         }
 
         private void OnDestroy()
@@ -98,9 +63,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private void SceneManager_SceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
         {
-            if (this.mainCamera != null)
-                this.mainCamera.gameObject.SetActive(false);
-            SceneManager.SetActiveScene(scene);
         }
 
         private void OnStartupCompleted()

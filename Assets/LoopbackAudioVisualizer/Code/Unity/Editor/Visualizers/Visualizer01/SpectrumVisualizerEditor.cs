@@ -1,30 +1,26 @@
 ﻿#if UNITY_EDITOR
 
+using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01;
 using Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer01
+namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
 {
     [CustomEditor(typeof(SpectrumVisualizer))]
-    public class SpectrumVisualizerEditor : BaseSpectrumVisualizerEditor
+    public class SpectrumVisualizerEditor : ScaledSpectrumVisualizerEditor
     {
-        private SerializedProperty cubePrefab;
-        private SerializedProperty center;
-        private SerializedProperty radius;
-        private SerializedProperty yScaleMultiplier;
-        private SerializedProperty maxYScale;
+        private SpectrumVisualizer spectrumVisualizer;
+
+        private SerializedProperty numberOfBands;
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
-            this.cubePrefab = this.serializedObject.FindProperty("cubePrefab");
-            this.center = this.serializedObject.FindProperty("center");
-            this.radius = this.serializedObject.FindProperty("radius");
-            this.yScaleMultiplier = this.serializedObject.FindProperty("yScaleMultiplier");
-            this.maxYScale = this.serializedObject.FindProperty("maxYScale");
+            this.spectrumVisualizer = this.target as SpectrumVisualizer;
+            this.numberOfBands = this.serializedObject.FindProperty("numberOfBands");
         }
 
         public override void OnInspectorGUI()
@@ -32,20 +28,14 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
             base.OnInspectorGUI();
             this.serializedObject.Update();
 
-            EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
-            GUILayout.Space(12.0f);
-            EditorExtension.DrawPropertyFieldSafe(this.cubePrefab, nameof(this.cubePrefab), new GUIContent("Cube Prefab"));
-
-            GUILayout.Space(6.0f);
-            EditorExtension.DrawPropertyFieldSafe(this.center, nameof(this.center), new GUIContent("Center", "The center of the circumference the cubes-frequencies are going to be placed upon."));
-            EditorExtension.DrawRangeFieldSafe(this.radius, nameof(this.radius), new GUIContent("Radius", "The radius of the circumference the cubes-frequencies are going to be placed upon."));
+            EditorExtension.DrawHeader("ISpectrumMeanAmplitudeProvider", Styles.ItalicsBoldLabel);
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.FloatField(new GUIContent("Mean Amplitude"), this.spectrumVisualizer.SpectrumMeanAmplitude);
             EditorGUI.EndDisabledGroup();
 
-            EditorGUILayout.Space();
-            EditorExtension.DrawRangeFieldSafe(this.yScaleMultiplier, nameof(this.yScaleMultiplier), new GUIContent("Y Scale Multiplier (k)", "Before being displayed, each FFT value will be scaled by this amount (multiplied by 1000)."));
-
-            if (!EditorExtension.DrawTogglePropertyField(this.maxYScale, new GUIContent("Max Y Scale")))
-                this.maxYScale.floatValue = -1.0f;
+            EditorExtension.DrawHeader("IReducedBandsSpectrumProvider", Styles.ItalicsBoldLabel);
+            EditorExtension.DrawEnumPopupSafe(this.numberOfBands, nameof(this.numberOfBands), new GUIContent("# of Bands"),
+                this.spectrumVisualizer.FftSize.GetPossibleNumberOfFrequencyBands(), bands => $"{(int)bands} bands");
 
             this.serializedObject.ApplyModifiedProperties();
         }

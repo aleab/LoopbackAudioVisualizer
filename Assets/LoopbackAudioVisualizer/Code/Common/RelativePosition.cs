@@ -7,7 +7,7 @@
     {
         /// <summary> SELF is at the top of OTHER. </summary>
         Top,
-        
+
         /// <summary> SELF is at the right of OTHER. </summary>
         Right,
 

@@ -1,186 +1,232 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
-using Aleab.LoopbackAudioVisualizer.Helpers;
-using CSCore.DSP;
 using MathNet.Numerics;
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 {
-    public class SpectrumVisualizer : BaseSpectrumVisualizer
+    public class SpectrumVisualizer : ScaledSpectrumVisualizer, ISpectrumMeanAmplitudeProvider, IReducedBandsSpectrumProvider
     {
-        private const FftSize REFERENCE_FFTSIZE = FftSize.Fft512;
-
         #region Inspector
 
-        [SerializeField]
-        private ScaleUpObject cubePrefab;
+#pragma warning disable 0414, 0649
 
         [SerializeField]
-        private Vector3 center = Vector3.zero;
+        private NumberOfFrequencyBands numberOfBands;
 
-        [SerializeField]
-        [Range(10.0f, 200.0f)]
-        private float radius = 10.0f;
-
-        [SerializeField]
-        [Range(0.1f, 100.0f)]
-        private float yScaleMultiplier = 25.0f;
-
-        [SerializeField]
-        [Range(0.0f, 500.0f)]
-        private float maxYScale = 125.0f;
+#pragma warning restore 0414, 0649
 
         #endregion Inspector
 
-        private Coroutine updateCubesCoroutine;
-        private ScaleUpObject[] cubes;
+        public event EventHandler SpectrumMeanAmplitudeUpdated;
 
-        private void Awake()
+        public event EventHandler<BandValueCalculatedEventArgs> BandValueCalculated;
+
+        #region [ ISpectrumMeanAmplitudeProvider ]
+
+        /// <inheritdoc />
+        public float SpectrumMeanAmplitude { get; private set; }
+
+        /// <inheritdoc />
+        public float WeightFunction(float frequency)
         {
-            this.RequireField(nameof(this.cubePrefab), this.cubePrefab);
+            const float minWeight = 0.05f;
+            const float stdDeviation = 4.0f;
+            const float mean = 2048.0f;
+            return (float)((1.0f - minWeight) * Math.Exp(-Math.Pow((frequency - mean) / 1000.0, 2) / (2.0 * stdDeviation * stdDeviation)) + minWeight);
         }
 
-        protected override void Start()
+        private void CalculateMean()
         {
-            GameObject cubes = SpawnRadialCubes((int)this.fftSize, this.center, this.radius, this.cubePrefab.gameObject, this.gameObject.transform);
-            this.cubes = new ScaleUpObject[cubes.transform.childCount];
-            for (int i = 0; i < this.cubes.Length; ++i)
-                this.cubes[i] = cubes.transform.GetChild(i).gameObject.GetComponent<ScaleUpObject>();
-        }
-
-        private IEnumerator UpdateCubes()
-        {
-            yield return null;
-            float fftSizeRatio = (float)this.fftSize / (float)REFERENCE_FFTSIZE;
-            while (this.updateCubesCoroutine != null)
+            float weightedSum = 0.0f;
+            float sumOfWeights = 0.0f;
+            for (int i = 0; i < this.fftDataBuffer.Length; ++i)
             {
-                for (int i = 0; i < this.cubes.Length && i < this.fftBuffer.Length; ++i)
-                {
-                    float scaledFftValue = this.fftBuffer[i] * 1000 * this.yScaleMultiplier * fftSizeRatio;
-                    this.cubes[i].ScaleSmooth(this.maxYScale < 0.0f ? scaledFftValue : Math.Min(scaledFftValue, this.maxYScale), true);
-                }
-                yield return new WaitForSeconds(UPDATE_FFT_INTERVAL);
+                float frequency = this.SpectrumProvider.GetFrequency(i);
+                float weight = this.WeightFunction(frequency);
+                sumOfWeights += weight;
+                weightedSum += this.fftDataBuffer[i] * weight;
+            }
+            float mean = weightedSum / sumOfWeights;
+            if (!this.SpectrumMeanAmplitude.AlmostEqual(mean))
+            {
+                this.SpectrumMeanAmplitude = mean;
+                this.SpectrumMeanAmplitudeUpdated?.Invoke(this, EventArgs.Empty);
             }
         }
 
-        protected void ResetCubes()
+        #endregion [ ISpectrumMeanAmplitudeProvider ]
+
+        #region [ IReducedBandsSpectrumProvider ]
+
+        private float[] baseBandsHighestFrequencies;
+        private float[] subBandsHighestFrequencies;
+
+        private float[] bandsDataBuffer;
+
+        /// <inheritdoc />
+        public int NumberOfBands { get { return (int)this.numberOfBands; } }
+
+        /// <inheritdoc />
+        public IReadOnlyCollection<float> BandsDataBuffer { get { return this.bandsDataBuffer; } }
+
+        private void PopulateBandsBuffer()
         {
-            if (this.cubes != null)
+            int S = this.SpectrumProvider.SampleRate;
+            int M = this.fftDataBuffer.Length;
+            float fm = S / (2.0f * M);
+
+            // (Re-)Create the new bands buffer array (if necessary)
+            if (this.NumberOfBands != this.bandsDataBuffer.Length)
             {
-                foreach (var cube in this.cubes)
-                    cube.Scale(cube.MinimumScale);
+                this.bandsDataBuffer = new float[this.NumberOfBands];
+                this.baseBandsHighestFrequencies = null;
+            }
+
+            // (Re-)Calculate the starting eight frequency bands (if necessary)
+            if (this.baseBandsHighestFrequencies == null)
+            {
+                this.CalculateBaseBands();
+                this.subBandsHighestFrequencies = null;
+            }
+
+            // (Re-)Calculate the necessary sub-divisions of the eight bands (if necessary)
+            if (this.subBandsHighestFrequencies == null)
+                this.CalculateSubBands();
+
+            // Calculate bands' average values
+            int i = 0;
+            float f = 0.0f;
+            for (int b = 0; b < this.NumberOfBands; ++b)
+            {
+                int samples = 0;
+                float sum = 0.0f;
+                for (; f < this.subBandsHighestFrequencies[b]; ++i, ++samples, f += fm)
+                    sum += this.fftDataBuffer[i];
+                this.bandsDataBuffer[b] = sum / samples;
+                this.BandValueCalculated?.Invoke(this, new BandValueCalculatedEventArgs(b, this.bandsDataBuffer[b]));
             }
         }
 
-        protected override void LoopbackAudioSource_DeviceChanged(object sender, MMDeviceChangedEventArgs e)
-        {
-            if (this.updateCubesCoroutine != null)
-            {
-                this.StopCoroutine(this.updateCubesCoroutine);
-                this.updateCubesCoroutine = null;
-            }
-
-            base.LoopbackAudioSource_DeviceChanged(sender, e);
-            
-            if (e.Initialized)
-                this.updateCubesCoroutine = this.StartCoroutine(this.UpdateCubes());
-            else
-                this.ResetCubes();
-        }
-
-        protected static GameObject SpawnRadialCubes(int n, Vector3 center, float radius, GameObject cubePrefab, Transform parent = null)
+        private void CalculateBaseBands()
         {
             #region Maths
 
             /*
-             * C: center; R: radius; δ = 360°/n: deltaDegree
-             * P, Q: first and second points on the circumference
-             * t: bisectrix of angle PCQ
-             * M: parametric point on t
-             * p: line through M, perpendicular to PC
-             * J: intersection of p and segment PC
-             * d: distance from point M to point J
-             * l: distance from point P to point J
+             * Standard Frequency Bands:
              *
-             * CONDITIONS:
-             *  1) 0° ≤ δ ≤ 90°
-             *     There should be at least 4 cubes
-             *  2) d == l
-             *     MJ must be half of the square's side
-             *  3) length of segment MC <= R
-             *     M must be inside the circumference
+             * Sub-bass           20Hz - 60Hz       F₀
+             * Bass               60Hz - 250Hz      F₁
+             * Low midrange      250Hz - 500Hz      F₂
+             * Midrange          500Hz - 2000Hz     F₃
+             * Upper midrange   2000Hz - 4000Hz     F₄
+             * Presence         4000Hz - 6000Hz     F₅
+             * Brilliance       6000Hz - 20000Hz    F₆
              *
+             * The FFT bands go from 0Hz to (SampleRate/2)Hz in (FftSize/2) samples.
+             * Each sample has (SampleRate / FftSize)Hz.
              *
-             * C = [0, 0];  P = [0, R];  Q = [-R sin(δ), R cos(δ)]
-             * random point on bisectrix: B = [-R sin(δ/2), R cos(δ/2)]
-             * t: y = -(R cos(δ/2) / R sin(δ/2)) x = -x cotg(δ/2)
-             * M = k * B = [-k R sin(δ/2), k R cos(δ/2)]
-             * p: y = k R cos(δ/2)
-             * J = [0, k R cos(δ/2)]
+             * S: sample rate
+             * M: number of original bands/samples, i.e. FftSize/2
+             * fₘ: Hz in each original band
+             * nᵢ: number of samples in the band i
+             * fᵢ: highest frequency in band i
              *
-             * 1)
-             * 0° ≤ δ/2 ≤ 45° => 1 ≥ cos(δ/2) ≥ √2/2
-             *                   0 ≤ sin(δ/2) ≤ √2/2
+             * fₘ = S / (2M)
+             * nᵢ ≥ 1 always!
+             * fᵢ = nᵢ * fₘ
              *
-             * 2)     ____________________________________________________
-             * { d = √(0 + k R sin(δ/2))² + (k R cos(δ/2) - k R cos(δ/2))² = | k R sin(δ/2) |
-             * {      ______________________________
-             * { l = √(0 - 0)² + (k R cos(δ/2) - R)² = | k R cos(δ/2) - R|
-             *
-             * | k R sin(δ/2) | = | k R cos(δ/2) - R |
-             * k R cos(δ/2) - R = ± k R sin(δ/2)
-             * k (cos(δ/2) ∓ sin(δ/2)) = 1
-             * k = 1 / (cos(δ/2) ∓ sin(δ/2))
-             *
-             * 1+2)
-             * k > 0 always ✓
-             *
-             * 3)
-             * ‖M‖ = ‖k * B‖ < R
-             *  _______________________________
-             * √k²R² sin²(δ/2) + k²R² cos²(δ/2) < R
-             * k R < R
-             * k < 1
-             *
-             * 2+3)
-             * k < 1  <=>  cos(δ/2) ∓ sin(δ/2) > 1
-             * hence, must be  k = 1 / (cos(δ/2) + sin(δ/2))
-             *
-             *
-             * CONCLUSION:
-             *   square side = 2 * length of MJ
-             *   M = [-(cos(δ/2) + sin(δ/2))⁻¹ R sin(δ/2), (cos(δ/2) + sin(δ/2))⁻¹ R cos(δ/2)]
-             *   J = [0, (cos(δ/2) + sin(δ/2))⁻¹ R cos(δ/2)]
-             *                   _____________________________________________
-             *   length of MJ = √(0 + (cos(δ/2) + sin(δ/2))⁻¹ R sin(δ/2))² + 0 = (cos(δ/2) + sin(δ/2))⁻¹ R sin(δ/2)
-             *   square side = 2 R sin(δ/2) (cos(δ/2) + sin(δ/2))⁻¹
-             *
+             * n₀ = ⌈(F₀ / fₘ)⌉
+             * nᵢ = ⌈(U(i) / fₘ)⌉
+             *        { (Fᵢ - ∑ⱼⁱ⁻¹fⱼ) / fₘ
+             * U(i) = {
+             *        { fₘ    if  ∑ⱼⁱ⁻¹fⱼ ≥ Fᵢ
              */
 
             #endregion Maths
 
-            float deltaDegrees = 360.0f / n;
-            double deltaRadians = Trig.DegreeToRadian(deltaDegrees);
-            float squareSide = (float)(2.0 * radius * Math.Sin(deltaRadians / 2) * (1 / (Math.Cos(deltaRadians / 2) + Math.Sin(deltaRadians / 2))));
+            float[] F = { 60, 250, 500, 2000, 4000, 6000, 20000 };
+            int S = this.SpectrumProvider.SampleRate;
+            int M = this.fftDataBuffer.Length;
+            float fm = S / (2.0f * M);
 
-            GameObject cubes = new GameObject($"{n}Cubes");
-            cubes.transform.parent = parent;
-            cubes.transform.position = center;
-            for (int i = 0; i < n; ++i)
+            this.baseBandsHighestFrequencies = new float[8];
+            for (int i = 0; i < 8; ++i)
             {
-                cubes.transform.localEulerAngles = new Vector3(0.0f, -deltaDegrees * i, 0.0f);
-
-                GameObject cube = Instantiate(cubePrefab);
-                cube.name = $"Cube{i}";
-                cube.transform.localScale = new Vector3(squareSide, squareSide, squareSide);
-                cube.transform.position = cubes.transform.position + Vector3.forward * radius;
-                cube.transform.parent = cubes.transform;
-                cube.SetActive(true);
+                float prevFreq = i == 0 ? 0.0f : this.baseBandsHighestFrequencies[i - 1];
+                this.baseBandsHighestFrequencies[i] = i == 7 ? S / 2.0f : prevFreq + fm * (prevFreq <= F[i] ? Mathf.Ceil((F[i] - prevFreq) / fm) : 1.0f);
             }
-
-            return cubes;
         }
+
+        private void CalculateSubBands()
+        {
+            int S = this.SpectrumProvider.SampleRate;
+            int M = this.fftDataBuffer.Length;
+            float fm = S / (2.0f * M);
+
+            this.subBandsHighestFrequencies = new float[this.NumberOfBands];
+            if (this.NumberOfBands == 8)
+                Array.Copy(this.baseBandsHighestFrequencies, this.subBandsHighestFrequencies, 8);
+            else
+            {
+                // Assume NumberOfBands is a multiple of 8
+                int subdivisionsPerBand = this.NumberOfBands / 8;
+                int pendingSubdivisions = 0;
+                float currentFrequency = 0.0f;
+                for (int i = 0, j = 0; i < 8 && j < this.NumberOfBands; ++i)
+                {
+                    int samplesInBaseBand = (int)((this.baseBandsHighestFrequencies[i] - currentFrequency) / fm);
+
+                    if (samplesInBaseBand == 1)
+                    {
+                        this.subBandsHighestFrequencies[j++] = this.baseBandsHighestFrequencies[i];
+                        pendingSubdivisions += subdivisionsPerBand;
+                    }
+                    else
+                    {
+                        int subdivisionsToCreateInThisBand = subdivisionsPerBand + pendingSubdivisions;
+                        int maxSubdivisionsThatCanBeCreated = Math.Min(samplesInBaseBand, subdivisionsToCreateInThisBand);
+                        int samplesForEachSubdivision = Mathf.FloorToInt((float)samplesInBaseBand / maxSubdivisionsThatCanBeCreated);
+                        for (int subD = 0; subD < maxSubdivisionsThatCanBeCreated - 1 && j < this.NumberOfBands - 1; ++subD)
+                        {
+                            float deltaF = fm * samplesForEachSubdivision * (subD + 1);
+                            this.subBandsHighestFrequencies[j++] = currentFrequency + deltaF;
+                        }
+                        this.subBandsHighestFrequencies[j++] = this.baseBandsHighestFrequencies[i];
+                        pendingSubdivisions = subdivisionsToCreateInThisBand - maxSubdivisionsThatCanBeCreated;
+                    }
+                    currentFrequency = this.subBandsHighestFrequencies[j - 1];
+                }
+            }
+        }
+
+        #endregion [ IReducedBandsSpectrumProvider ]
+
+        #region Event Handlers
+
+        protected override void OnFftDataBufferUpdated()
+        {
+            base.OnFftDataBufferUpdated();
+            this.CalculateMean();
+            this.PopulateBandsBuffer();
+        }
+
+        protected override void OnUpdateFftDataCoroutineStarted()
+        {
+            base.OnUpdateFftDataCoroutineStarted();
+            this.bandsDataBuffer = new float[this.NumberOfBands];
+        }
+
+        protected override void OnUpdateFftDataCoroutineStopped()
+        {
+            base.OnUpdateFftDataCoroutineStopped();
+            this.SpectrumMeanAmplitude = 0.0f;
+
+            if (this.bandsDataBuffer != null)
+                Array.Clear(this.bandsDataBuffer, 0, this.bandsDataBuffer.Length);
+        }
+
+        #endregion Event Handlers
     }
 }

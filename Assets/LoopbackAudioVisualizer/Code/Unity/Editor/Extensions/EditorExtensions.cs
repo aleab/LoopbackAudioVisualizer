@@ -1,5 +1,9 @@
 ﻿#if UNITY_EDITOR
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Aleab.LoopbackAudioVisualizer.Helpers;
 using UnityEditor;
 using UnityEngine;
@@ -15,10 +19,10 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
             return new[] { GUILayout.MinWidth(minWidth), GUILayout.MaxWidth(maxWidth) };
         }
 
-        public static void DrawHeader(string text)
+        public static void DrawHeader(string text, GUIStyle style = null)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(new GUIContent(text), EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(new GUIContent(text), style ?? EditorStyles.boldLabel);
         }
 
         #region DrawPropertyFieldSafe
@@ -84,6 +88,53 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
         }
 
         #endregion DrawRangeFieldSafe
+
+        #region DrawIntRangeFieldSafe
+
+        public static bool DrawIntRangeFieldSafe(SerializedProperty property, string propertyName, int min, int max, params GUILayoutOption[] options)
+        {
+            if (property != null)
+            {
+                EditorGUILayout.IntSlider(property, min, max, options);
+                return true;
+            }
+            return DrawErrorLabel(propertyName);
+        }
+
+        public static bool DrawIntRangeFieldSafe(SerializedProperty property, string propertyName, int min, int max, GUIContent label, params GUILayoutOption[] options)
+        {
+            if (property != null)
+            {
+                EditorGUILayout.IntSlider(property, min, max, label, options);
+                return true;
+            }
+            return DrawErrorLabel(propertyName, $"{label.text}\n{label.tooltip}");
+        }
+
+        public static bool DrawIntRangeFieldSafe(SerializedProperty property, string propertyName, int min, int max, int[] steps, GUIContent label, params GUILayoutOption[] options)
+        {
+            if (property != null)
+            {
+                int selected = EditorGUILayout.IntSlider(label, property.intValue, min, max, options);
+                property.intValue = steps.Where(step => selected >= step).Max();
+                return true;
+            }
+            return DrawErrorLabel(propertyName, $"{label.text}\n{label.tooltip}");
+        }
+
+        #endregion DrawRangeFieldSafe
+
+        public static bool DrawEnumPopupSafe<TEnum>(SerializedProperty property, string propertyName, GUIContent label, ICollection<TEnum> values, Func<TEnum, string> displayedOptionsSelector = null, params GUILayoutOption[] options)
+            where TEnum : struct, IConvertible, IComparable, IFormattable
+        {
+            if (property != null)
+            {
+                var displayedOptions = values.Select((e, guiContent) => new GUIContent(displayedOptionsSelector?.Invoke(e) ?? e.ToString(CultureInfo.InvariantCulture))).ToArray();
+                property.enumValueIndex = EditorGUILayout.Popup(label, property.enumValueIndex, displayedOptions);
+                return true;
+            }
+            return DrawErrorLabel(propertyName);
+        }
 
         #region DrawCompactArray
 

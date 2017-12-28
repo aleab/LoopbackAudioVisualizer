@@ -10,15 +10,6 @@ using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts
 {
-    /*
-     * - convert audio data to format required by FFT (e.g. int -> float, separate L/R channels)
-     * - apply suitable window function (e.g. Hann aka Hanning window)
-     * - apply FFT (NB: if using typical complex-to-complex FFT then set imaginary parts of input array to zero)
-     * - calculate magnitude of first N/2 FFT output bins (sqrt(re*re + im*im))
-     * - optionally convert magnitude to dB (log) scale (20 * log10(magnitude))
-     * - plot N/2 (log) magnitude values
-     */
-
     public class LoopbackAudioSource : MonoBehaviour, IDisposable
     {
         #region Private fields

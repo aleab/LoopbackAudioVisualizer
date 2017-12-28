@@ -49,5 +49,11 @@ sysinfo.txt
 # Visual Studio GlobalSuppressions
 GlobalSuppressions.cs*
 
+# CodeMaid
+CodeMaid\.config
+
 # TextMesh Pro
 /Assets/TextMesh Pro/Examples*
+
+# Editor-only scenes
+Assets/LoopbackAudioVisualizer/AudioVisualizer01_EditorOnly\.unity

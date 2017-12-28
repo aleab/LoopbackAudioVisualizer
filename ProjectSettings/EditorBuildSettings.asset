@@ -9,5 +9,5 @@ EditorBuildSettings:
     path: Assets/LoopbackAudioVisualizer/00_Common.unity
     guid: c18237efcdda4b04e9e10733369ffcf6
   - enabled: 1
-    path: Assets/LoopbackAudioVisualizer/AudioVisualizer_01.unity
+    path: Assets/LoopbackAudioVisualizer/AudioVisualizer01.unity
     guid: 3f0d89972e5626a49befa8609d6f5fce

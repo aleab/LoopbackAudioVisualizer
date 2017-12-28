@@ -1,30 +1,57 @@
-﻿using System;
-using Aleab.LoopbackAudioVisualizer.Events;
+﻿using Aleab.LoopbackAudioVisualizer.Events;
+using Aleab.LoopbackAudioVisualizer.Helpers;
+using Aleab.LoopbackAudioVisualizer.Unity;
 using CSCore.DSP;
 using CSCore.Streams;
+using System;
 using System.Collections;
 using UnityEngine;
-using Aleab.LoopbackAudioVisualizer.Helpers;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 {
-    public class BaseSpectrumVisualizer : MonoBehaviour
+    /// <summary>
+    /// Base class of any audio visualizer that needs to use the spectrum data.<br/>
+    ///
+    /// This class can provide, at any moment after a device has been initialized, the samples of the FFT of the audio signal that is being played;
+    /// the total number of samples is equal to half of the FFT size.<br/>
+    ///
+    /// The basic usage is to start polling the <see cref="fftDataBuffer"/> in the <see cref="OnUpdateFftDataCoroutineStarted"/> method to get the up-to-date spectrum data.
+    /// </summary>
+    public abstract class BaseSpectrumVisualizer : MonoBehaviour
     {
         protected const float UPDATE_FFT_INTERVAL = 0.05f;
 
         #region Inspector
 
         [SerializeField]
+        [DisableWhenPlaying]
         protected FftSize fftSize = FftSize.Fft512;
 
         [SerializeField]
-        protected float[] fftBuffer;
+        protected float[] rawFftDataBuffer;
+
+        [SerializeField]
+        protected float[] fftDataBuffer;
 
         #endregion Inspector
 
         protected SimpleSpectrumProvider spectrumProvider;
 
         private Coroutine updateFftDataCoroutine;
+
+        public FftSize FftSize { get { return this.fftSize; } }
+
+        public SimpleSpectrumProvider SpectrumProvider { get { return this.spectrumProvider ?? new SimpleSpectrumProvider(2, 48000, this.fftSize); } }
+
+        #region Events
+
+        public event EventHandler UpdateFftDataCoroutineStarted;
+
+        public event EventHandler UpdateFftDataCoroutineStopped;
+
+        public event EventHandler FftDataBufferUpdated;
+
+        #endregion Events
 
         protected virtual void Start()
         {
@@ -39,19 +66,31 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         private IEnumerator UpdateFftData()
         {
-            this.fftBuffer = new float[(int)this.fftSize];
+            this.rawFftDataBuffer = new float[(int)this.fftSize];
+            this.fftDataBuffer = new float[(int)this.fftSize / 2];
             yield return null;
-            
+
+            this.OnUpdateFftDataCoroutineStarted();
             while (this.updateFftDataCoroutine != null)
             {
                 if (this.spectrumProvider.IsNewDataAvailable)
-                    this.spectrumProvider.GetFftData(this.fftBuffer, this);
+                {
+                    // Apply FFT with size N
+                    this.spectrumProvider.GetFftData(this.rawFftDataBuffer, this);
+
+                    // Take the first N/2 values
+                    for (int i = 0; i < this.fftDataBuffer.Length; ++i)
+                        this.fftDataBuffer[i] = this.ProcessRawFftValue(this.rawFftDataBuffer[i], i);
+                    this.OnFftDataBufferUpdated();
+                }
 
                 yield return new WaitForSeconds(UPDATE_FFT_INTERVAL);
             }
 
-            Array.Clear(this.fftBuffer, 0, this.fftBuffer.Length);
+            this.OnUpdateFftDataCoroutineStopped();
         }
+
+        protected abstract float ProcessRawFftValue(float rawFftValue, int fftBandIndex);
 
         protected virtual void OnDisable()
         {
@@ -105,6 +144,23 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         protected virtual void LoopbackAudioSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
         {
             this.spectrumProvider.Add(e.Left, e.Right);
+        }
+
+        protected virtual void OnUpdateFftDataCoroutineStarted()
+        {
+            this.UpdateFftDataCoroutineStarted?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnUpdateFftDataCoroutineStopped()
+        {
+            Array.Clear(this.rawFftDataBuffer, 0, this.rawFftDataBuffer.Length);
+            Array.Clear(this.fftDataBuffer, 0, this.fftDataBuffer.Length);
+            this.UpdateFftDataCoroutineStopped?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnFftDataBufferUpdated()
+        {
+            this.FftDataBufferUpdated?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -11,12 +11,14 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
     public class BaseSpectrumVisualizerEditor : Editor
     {
         private SerializedProperty fftSize;
-        private SerializedProperty fftBuffer;
+        private SerializedProperty rawFftDataBuffer;
+        private SerializedProperty fftDataBuffer;
 
         protected virtual void OnEnable()
         {
             this.fftSize = this.serializedObject.FindProperty("fftSize");
-            this.fftBuffer = this.serializedObject.FindProperty("fftBuffer");
+            this.rawFftDataBuffer = this.serializedObject.FindProperty("rawFftDataBuffer");
+            this.fftDataBuffer = this.serializedObject.FindProperty("fftDataBuffer");
         }
 
         public override void OnInspectorGUI()
@@ -28,17 +30,12 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space();
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                EditorGUI.BeginDisabledGroup(true);
-                EditorExtension.DrawPropertyFieldSafe(this.fftSize, nameof(this.fftSize), new GUIContent("FFT Size"));
-                EditorGUI.EndDisabledGroup();
-            }
-            else
-                EditorExtension.DrawPropertyFieldSafe(this.fftSize, nameof(this.fftSize), new GUIContent("FFT Size"));
+            EditorExtension.DrawPropertyFieldSafe(this.fftSize, nameof(this.fftSize), new GUIContent("FFT Size"));
 
             EditorGUI.BeginDisabledGroup(true);
-            EditorExtension.DrawCompactArray(this.fftBuffer, nameof(this.fftBuffer), new GUIContent("FFT Buffer"), 4);
+            EditorExtension.DrawCompactArray(this.rawFftDataBuffer, nameof(this.rawFftDataBuffer), new GUIContent("Raw FFT Data"), 4);
+            GUILayout.Space(4.0f);
+            EditorExtension.DrawCompactArray(this.fftDataBuffer, nameof(this.fftDataBuffer), new GUIContent("FFT Data"), 4);
             EditorGUI.EndDisabledGroup();
 
             this.serializedObject.ApplyModifiedProperties();
