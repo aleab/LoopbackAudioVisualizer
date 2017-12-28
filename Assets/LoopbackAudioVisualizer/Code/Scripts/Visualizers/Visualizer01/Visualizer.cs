@@ -496,7 +496,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
              * l = L/n: distance between each cube's center on the arc
              *
              * θᵢ: angle of the iᵗʰ arc segment; arc length to the iᵗʰ arc segment = i l
-             * θᵢ = FindRoot[∫(D[ξˣ(ϑ)]² + D[ξʸ(ϑ)]²)dϑ = i l]   😭
+             *                  _____________________
+             * θᵢ = FindRoot[∫(√D[ξˣ(ϑ)]² + D[ξʸ(ϑ)]²)dϑ = i l]   😭
              *
              * Pᵢ = ξ(θᵢ): position of the iᵗʰ cube
              *
