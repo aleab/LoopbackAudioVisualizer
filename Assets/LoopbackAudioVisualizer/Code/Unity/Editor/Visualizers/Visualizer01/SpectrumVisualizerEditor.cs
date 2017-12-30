@@ -34,8 +34,10 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
             EditorGUI.EndDisabledGroup();
 
             EditorExtension.DrawHeader("IReducedBandsSpectrumProvider", Styles.ItalicsBoldLabel);
+            EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
             EditorExtension.DrawEnumPopupSafe(this.numberOfBands, nameof(this.numberOfBands), new GUIContent("# of Bands"),
                 this.spectrumVisualizer.FftSize.GetPossibleNumberOfFrequencyBands(), bands => $"{(int)bands} bands");
+            EditorGUI.EndDisabledGroup();
 
             this.serializedObject.ApplyModifiedProperties();
         }
