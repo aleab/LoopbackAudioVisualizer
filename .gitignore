@@ -57,3 +57,9 @@ CodeMaid\.config
 
 # Editor-only scenes
 Assets/LoopbackAudioVisualizer/AudioVisualizer01_EditorOnly\.unity
+
+# Unity3D lightmaps
+**/LightingData.asset
+**/Lightmap-*_comp_dir.png
+**/Lightmap-*_comp_light.exr
+**/Lightmap-*_comp_shadowmask.png

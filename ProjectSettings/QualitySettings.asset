@@ -94,7 +94,7 @@ QualitySettings:
     name: Ultra
     pixelLightCount: 4
     shadows: 2
-    shadowResolution: 2
+    shadowResolution: 3
     shadowProjection: 1
     shadowCascades: 4
     shadowDistance: 150
@@ -105,7 +105,7 @@ QualitySettings:
     blendWeights: 4
     textureQuality: 0
     anisotropicTextures: 2
-    antiAliasing: 2
+    antiAliasing: 4
     softParticles: 1
     softVegetation: 1
     realtimeReflectionProbes: 1
@@ -126,7 +126,7 @@ QualitySettings:
     PSM: 3
     PSP2: 0
     Samsung TV: 0
-    Standalone: 3
+    Standalone: 2
     Tizen: 0
     WebGL: 1
     WiiU: 3
