@@ -12,7 +12,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         private bool autoUpdate;
 
         [SerializeField]
-        private LightSet[] lightSets;
+        protected LightSet[] lightSets;
 
         #endregion Inspector
 

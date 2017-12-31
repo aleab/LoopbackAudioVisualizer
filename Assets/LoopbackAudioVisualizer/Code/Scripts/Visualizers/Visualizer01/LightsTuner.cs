@@ -1,8 +1,10 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Unity;
+using MathNet.Numerics;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Range = Aleab.LoopbackAudioVisualizer.Unity.RangeAttribute;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 {
@@ -13,6 +15,26 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         [SerializeField]
         [DisableWhenPlaying]
         private SpectrumVisualizer spectrumVisualizer;
+
+        #region Intensity ⨯ Mean Spectrum Amplitude
+
+        [SerializeField]
+        [Range(-0.5f, 4.0f)]
+        private float intMeanSpAMin = 0.25f;
+
+        [SerializeField]
+        [Range(1.0f, 10.0f)]
+        private float intMeanSpAMax = 6.0f;
+
+        [SerializeField]
+        [Range(0.0f, 1.0f)]
+        private float intMeanSpAThreshold = 0.05f;
+
+        [SerializeField]
+        [Range(0.01f, 1.0f)]
+        private float intMeanSpASigma = 0.4f;
+
+        #endregion Intensity ⨯ Mean Spectrum Amplitude
 
         #endregion Inspector
 
@@ -35,12 +57,13 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private void IntensityTuningOnSpectrumMeanAmplitudeChange(Light light)
         {
             float normalizedValue = Mathf.Clamp01(this.spectrumVisualizer.SpectrumMeanAmplitude / this.spectrumVisualizer.SpectrumMeanAmplitudePeak);
-
-            const float min = -0.2f;
-            const float max = 6.0f;
-            const float stdDev = 0.4f;
-            float f2 = Mathf.Exp(-(normalizedValue - 1.0f) * (normalizedValue - 1.0f) / (2.0f * stdDev * stdDev));
-            light.intensity = (max - min) * Mathf.Clamp(f2, 0.0f, float.PositiveInfinity) + min;
+            if (normalizedValue.AlmostEqual(0.0f, 0.0001))
+                light.intensity = 0.0f;
+            else if (normalizedValue.IsLarger(this.intMeanSpAThreshold, 0.0000001))
+            {
+                float f = Mathf.Exp(-(normalizedValue - 1.0f) * (normalizedValue - 1.0f) / (2.0f * this.intMeanSpASigma * this.intMeanSpASigma));
+                light.intensity = (this.intMeanSpAMax - this.intMeanSpAMin) * Mathf.Clamp(f, 0.0f, float.PositiveInfinity) + this.intMeanSpAMin;
+            }
         }
 
         #endregion LightSetsFunctions

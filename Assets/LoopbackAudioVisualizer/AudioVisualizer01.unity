@@ -857,6 +857,10 @@ MonoBehaviour:
     - {fileID: 931164094}
     - {fileID: 629786995}
   spectrumVisualizer: {fileID: 975967633}
+  intMeanSpAMin: 0.25
+  intMeanSpAMax: 6
+  intMeanSpAThreshold: 0.05
+  intMeanSpASigma: 0.4
 --- !u!1001 &1210950443
 Prefab:
   m_ObjectHideFlags: 0
