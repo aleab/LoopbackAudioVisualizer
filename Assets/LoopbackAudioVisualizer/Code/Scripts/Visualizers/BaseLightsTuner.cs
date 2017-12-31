@@ -30,6 +30,21 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 #endif
         }
 
+        protected virtual void OnEnable()
+        {
+            if (this.AutoUpdate && this.lightsUpdateCoroutine == null)
+                this.lightsUpdateCoroutine = this.StartCoroutine(this.LightsUpdateCoroutine());
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (this.lightsUpdateCoroutine != null)
+            {
+                this.StopCoroutine(this.lightsUpdateCoroutine);
+                this.lightsUpdateCoroutine = null;
+            }
+        }
+
         protected abstract void TuneLight(int setIndex, Light light);
 
         protected void UpdateLights()

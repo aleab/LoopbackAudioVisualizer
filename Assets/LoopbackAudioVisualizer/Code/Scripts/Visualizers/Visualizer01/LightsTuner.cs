@@ -38,6 +38,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         #endregion Inspector
 
+        private List<List<float>> intensities;
+
         /// <inheritdoc />
         protected override float UpdateInterval { get { return 0.075f; } }
 
@@ -45,9 +47,39 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         {
             this.RequireField(nameof(this.spectrumVisualizer), this.spectrumVisualizer);
 
+            this.intensities = new List<List<float>>(this.lightSets.Length);
+            for (int i = 0; i < this.lightSets.Length; ++i)
+            {
+                var set = this.lightSets[i];
+                if (set?.lights != null)
+                {
+                    if (this.intensities.Count <= i)
+                        this.intensities.Add(new List<float>(set.lights.Length));
+                    foreach (Light light in set.lights)
+                        this.intensities[i].Add(light.intensity);
+                }
+            }
+
             this.lightSetsFunctions.Add(0, this.IntensityTuningOnSpectrumMeanAmplitudeChange);
 
-            this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+            if (!this.AutoUpdate)
+                this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated -= this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+            if (!this.AutoUpdate)
+                this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated -= this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+            this.ResetLightsIntensity();
         }
 
         #region LightSetsFunctions
@@ -73,6 +105,21 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         {
             if (this.lightSetsFunctions?.ContainsKey(setIndex) == true)
                 this.lightSetsFunctions[setIndex]?.Invoke(light);
+        }
+
+        private void ResetLightsIntensity()
+        {
+            for (int i = 0; i < this.intensities.Count; ++i)
+            {
+                var set = this.lightSets[i];
+                if (set?.lights == null)
+                    continue;
+                for (int j = 0; j < this.intensities[i].Count && j < set.lights.Length; ++j)
+                {
+                    if (set.lights[j] != null)
+                        set.lights[j].intensity = this.intensities[i][j];
+                }
+            }
         }
 
         private void SpectrumVisualizer_SpectrumMeanAmplitudeUpdated(object sender, EventArgs e)
