@@ -14,6 +14,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
     public sealed class LightsTunerEditor : BaseLightsTunerEditor
     {
         private static readonly Dictionary<LightsTuner, bool> intMeanSpAFoldouts;
+        private static readonly Dictionary<LightsTuner, bool> onOffMeanSpAFoldouts;
 
         private LightsTuner lightsTuner;
 
@@ -23,6 +24,8 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
         private SerializedProperty intMeanSpAThreshold;
         private SerializedProperty intMeanSpASigma;
 
+        private SerializedProperty onOffMeanSpAThreshold;
+
         static LightsTunerEditor()
         {
             IEqualityComparer<LightsTuner> comparer = new AnonymousComparer<LightsTuner>((v1, v2) => v1.GetInstanceID() == v2.GetInstanceID());
@@ -31,6 +34,11 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
                 intMeanSpAFoldouts.Clear();
             else
                 intMeanSpAFoldouts = new Dictionary<LightsTuner, bool>(comparer);
+
+            if (onOffMeanSpAFoldouts != null)
+                onOffMeanSpAFoldouts.Clear();
+            else
+                onOffMeanSpAFoldouts = new Dictionary<LightsTuner, bool>(comparer);
         }
 
         protected override void OnEnable()
@@ -45,8 +53,12 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
             this.intMeanSpAThreshold = this.serializedObject.FindProperty("intMeanSpAThreshold");
             this.intMeanSpASigma = this.serializedObject.FindProperty("intMeanSpASigma");
 
+            this.onOffMeanSpAThreshold = this.serializedObject.FindProperty("onOffMeanSpAThreshold");
+
             if (!intMeanSpAFoldouts.ContainsKey(this.lightsTuner))
                 intMeanSpAFoldouts.Add(this.lightsTuner, true);
+            if (!onOffMeanSpAFoldouts.ContainsKey(this.lightsTuner))
+                onOffMeanSpAFoldouts.Add(this.lightsTuner, true);
         }
 
         public override void OnInspectorGUI()
@@ -78,6 +90,18 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
                 float actualMax = intMeanSpA(1.0f);
                 GUILayout.Space(4.0f);
                 EditorGUILayout.LabelField(new GUIContent("Actual Min / Max"), new GUIContent($"{actualMin} / {actualMax}"));
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndVertical();
+
+            // ================[ On/Off Threshold ⨯ Mean Spectrum Amplitude ]================
+            EditorGUILayout.Space();
+            EditorGUILayout.BeginVertical(Styles.HelpBoxForFoldout);
+            onOffMeanSpAFoldouts[this.lightsTuner] = EditorGUILayout.Foldout(onOffMeanSpAFoldouts[this.lightsTuner], new GUIContent("On/Off Threshold – Mean Spectrum Amplitude"), true, Styles.FoldoutWithBoldLabel);
+            if (onOffMeanSpAFoldouts[this.lightsTuner])
+            {
+                EditorGUI.indentLevel++;
+                EditorExtension.DrawPropertyFieldSafe(this.onOffMeanSpAThreshold, nameof(this.onOffMeanSpAThreshold), new GUIContent("Threshold"));
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndVertical();

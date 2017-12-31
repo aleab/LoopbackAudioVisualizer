@@ -45,7 +45,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
             }
         }
 
-        protected abstract void TuneLight(int setIndex, Light light);
+        protected abstract void TuneLight(int setIndex, Light light, int lightIndex);
 
         protected void UpdateLights()
         {
@@ -60,8 +60,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         {
             if (this.lightSets?[setIndex]?.lights != null)
             {
-                foreach (var light in this.lightSets[setIndex].lights)
-                    this.TuneLight(setIndex, light);
+                for (int i = 0; i < this.lightSets[setIndex].lights.Length; ++i)
+                    this.TuneLight(setIndex, this.lightSets[setIndex].lights[i], i);
             }
         }
 

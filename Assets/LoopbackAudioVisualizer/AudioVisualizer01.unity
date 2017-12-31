@@ -856,11 +856,14 @@ MonoBehaviour:
     - {fileID: 453720226}
     - {fileID: 931164094}
     - {fileID: 629786995}
+  - lights:
+    - {fileID: 1455564463}
   spectrumVisualizer: {fileID: 975967633}
   intMeanSpAMin: 0.25
   intMeanSpAMax: 6
   intMeanSpAThreshold: 0.05
   intMeanSpASigma: 0.4
+  onOffMeanSpAThreshold: 0.1
 --- !u!1001 &1210950443
 Prefab:
   m_ObjectHideFlags: 0
