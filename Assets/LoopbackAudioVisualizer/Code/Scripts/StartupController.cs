@@ -48,7 +48,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
             Preferences.Load();
 
-#if DEBUG && UNITY_EDITOR
+#if DEBUG
             Scenes.AudioVisualizer01.Load(LoadSceneMode.Additive);
 #endif
 

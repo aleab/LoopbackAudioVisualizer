@@ -1,9 +1,14 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Common;
 using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Unity;
-using UnityEditor;
 using UnityEngine;
 using Range = Aleab.LoopbackAudioVisualizer.Unity.RangeAttribute;
+
+#if UNITY_EDITOR
+
+using UnityEditor;
+
+#endif
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts
 {
