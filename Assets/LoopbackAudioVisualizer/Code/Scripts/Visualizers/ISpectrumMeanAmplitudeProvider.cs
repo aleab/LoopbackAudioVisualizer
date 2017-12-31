@@ -15,6 +15,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         float SpectrumMeanAmplitude { get; }
 
         /// <summary>
+        /// The highest mean amplitude reached.
+        /// </summary>
+        float SpectrumMeanAmplitudePeak { get; }
+
+        /// <summary>
         /// The function used to calculate the weight for each frequency band.
         /// </summary>
         /// <param name="frequency"> The frequency band. </param>

@@ -19,7 +19,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
     /// </summary>
     public abstract class BaseSpectrumVisualizer : MonoBehaviour
     {
-        protected const float UPDATE_FFT_INTERVAL = 0.05f;
+        public const float UPDATE_FFT_INTERVAL = 0.05f;
 
         #region Inspector
 

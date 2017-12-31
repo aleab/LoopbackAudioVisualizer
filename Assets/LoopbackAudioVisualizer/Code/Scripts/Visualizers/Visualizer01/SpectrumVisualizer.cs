@@ -29,6 +29,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         public float SpectrumMeanAmplitude { get; private set; }
 
         /// <inheritdoc />
+        public float SpectrumMeanAmplitudePeak { get; private set; }
+
+        /// <inheritdoc />
         public float WeightFunction(float frequency)
         {
             const float minWeight = 0.05f;
@@ -49,6 +52,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
                 weightedSum += this.fftDataBuffer[i] * weight;
             }
             float mean = weightedSum / sumOfWeights;
+            if (mean > this.SpectrumMeanAmplitudePeak)
+                this.SpectrumMeanAmplitudePeak = mean;
             if (!this.SpectrumMeanAmplitude.AlmostEqual(mean))
             {
                 this.SpectrumMeanAmplitude = mean;
