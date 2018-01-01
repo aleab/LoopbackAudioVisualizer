@@ -700,6 +700,21 @@ MonoBehaviour:
   logLowFreqGain: 1.5
   logHighFreqGain: 40
   numberOfBands: 32
+  spectrumRanges:
+  - lowerFrequency: 20
+    higherFrequency: 40
+  - lowerFrequency: 40
+    higherFrequency: 160
+  - lowerFrequency: 160
+    higherFrequency: 300
+  - lowerFrequency: 300
+    higherFrequency: 800
+  - lowerFrequency: 800
+    higherFrequency: 2500
+  - lowerFrequency: 2500
+    higherFrequency: 5000
+  - lowerFrequency: 5000
+    higherFrequency: 20000
 --- !u!1001 &1008103045
 Prefab:
   m_ObjectHideFlags: 0

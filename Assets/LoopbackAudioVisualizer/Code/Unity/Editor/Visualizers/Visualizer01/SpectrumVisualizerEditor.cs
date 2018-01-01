@@ -14,6 +14,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
         private SpectrumVisualizer spectrumVisualizer;
 
         private SerializedProperty numberOfBands;
+        private SerializedProperty spectrumRanges;
 
         protected override void OnEnable()
         {
@@ -21,6 +22,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
 
             this.spectrumVisualizer = this.target as SpectrumVisualizer;
             this.numberOfBands = this.serializedObject.FindProperty("numberOfBands");
+            this.spectrumRanges = this.serializedObject.FindProperty("spectrumRanges");
         }
 
         public override void OnInspectorGUI()
@@ -37,6 +39,11 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
             EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
             EditorExtension.DrawEnumPopupSafe(this.numberOfBands, nameof(this.numberOfBands), new GUIContent("# of Bands"),
                 this.spectrumVisualizer.FftSize.GetPossibleNumberOfFrequencyBands(), bands => $"{(int)bands} bands");
+            EditorGUI.EndDisabledGroup();
+
+            EditorExtension.DrawHeader("IRangedSpectrumMeanAmplitudeProvider", Styles.ItalicsBoldLabel);
+            EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
+            EditorExtension.DrawPropertyFieldSafe(this.spectrumRanges, nameof(this.spectrumRanges), new GUIContent("Spectrum Ranges"));
             EditorGUI.EndDisabledGroup();
 
             this.serializedObject.ApplyModifiedProperties();

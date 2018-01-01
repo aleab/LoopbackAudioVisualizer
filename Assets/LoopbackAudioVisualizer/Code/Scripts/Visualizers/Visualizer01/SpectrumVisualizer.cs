@@ -1,4 +1,5 @@
-﻿using Aleab.LoopbackAudioVisualizer.Events;
+﻿using Aleab.LoopbackAudioVisualizer.Code;
+using Aleab.LoopbackAudioVisualizer.Events;
 using MathNet.Numerics;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 {
-    public class SpectrumVisualizer : ScaledSpectrumVisualizer, ISpectrumMeanAmplitudeProvider, IReducedBandsSpectrumProvider
+    public class SpectrumVisualizer : ScaledSpectrumVisualizer, ISpectrumMeanAmplitudeProvider, IReducedBandsSpectrumProvider, IRangedSpectrumMeanAmplitudeProvider
     {
         #region Inspector
 
@@ -15,15 +16,17 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         [SerializeField]
         private NumberOfFrequencyBands numberOfBands;
 
+        [SerializeField]
+        private SpectrumRange[] spectrumRanges;
+
 #pragma warning restore 0414, 0649
 
         #endregion Inspector
 
-        public event EventHandler SpectrumMeanAmplitudeUpdated;
-
-        public event EventHandler<BandValueCalculatedEventArgs> BandValueCalculated;
-
         #region [ ISpectrumMeanAmplitudeProvider ]
+
+        /// <inheritdoc />
+        public event EventHandler SpectrumMeanAmplitudeUpdated;
 
         /// <inheritdoc />
         public float SpectrumMeanAmplitude { get; private set; }
@@ -69,6 +72,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private float[] subBandsHighestFrequencies;
 
         private float[] bandsDataBuffer;
+
+        /// <inheritdoc />
+        public event EventHandler<BandValueCalculatedEventArgs> BandValueCalculated;
 
         /// <inheritdoc />
         public int NumberOfBands { get { return (int)this.numberOfBands; } }
@@ -208,6 +214,66 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         #endregion [ IReducedBandsSpectrumProvider ]
 
+        #region [ IRangedSpectrumMeanAmplitudeProvider ]
+
+        /// <inheritdoc />
+        public event EventHandler<SpectrumRangeMeanAmplitudeEventArgs> SpectrumRangeMeanAmplitudeUpdated;
+
+        /// <inheritdoc />
+        public MutableTuple<SpectrumRange, float, float>[] RangedSpectrumMeanAmplitudes { get; private set; }
+
+        public void ConfigureRangedSpectrumMeanAmplitudeProvider()
+        {
+            if (this.RangedSpectrumMeanAmplitudes != null)
+                Array.Clear(this.RangedSpectrumMeanAmplitudes, 0, this.RangedSpectrumMeanAmplitudes.Length);
+            this.RangedSpectrumMeanAmplitudes = null;
+
+            if (this.spectrumRanges != null)
+            {
+                this.RangedSpectrumMeanAmplitudes = new MutableTuple<SpectrumRange, float, float>[this.spectrumRanges.Length];
+                for (int i = 0; i < this.spectrumRanges.Length; ++i)
+                {
+                    SpectrumRange spectrumRange = new SpectrumRange(this.spectrumRanges[i].lowerFrequency, this.spectrumRanges[i].higherFrequency);
+                    this.RangedSpectrumMeanAmplitudes[i] = new MutableTuple<SpectrumRange, float, float>(spectrumRange, 0.0f, 0.0f);
+                }
+            }
+        }
+
+        private void CalculateRangedMeans()
+        {
+            if (this.RangedSpectrumMeanAmplitudes == null)
+                return;
+
+            foreach (var tuple in this.RangedSpectrumMeanAmplitudes)
+            {
+                SpectrumRange spectrumRange = tuple.Item1;
+                int lowIndex = this.SpectrumProvider.GetFftBandIndex(spectrumRange.lowerFrequency);
+                int highIndex = this.SpectrumProvider.GetFftBandIndex(spectrumRange.higherFrequency);
+
+                float sum = 0.0f;
+                for (int i = lowIndex; i <= highIndex; ++i)
+                    sum += this.fftDataBuffer[i];
+                tuple.Item2 = sum / (highIndex + 1 - lowIndex);
+                if (tuple.Item2 > tuple.Item3)
+                    tuple.Item3 = tuple.Item2;
+                this.SpectrumRangeMeanAmplitudeUpdated?.Invoke(this, new SpectrumRangeMeanAmplitudeEventArgs(spectrumRange, tuple.Item2, tuple.Item3));
+            }
+        }
+
+        private void ResetRangedMeans()
+        {
+            if (this.RangedSpectrumMeanAmplitudes != null)
+            {
+                foreach (var tuple in this.RangedSpectrumMeanAmplitudes)
+                {
+                    tuple.Item2 = 0.0f;
+                    tuple.Item3 = 0.0f;
+                }
+            }
+        }
+
+        #endregion [ IRangedSpectrumMeanAmplitudeProvider ]
+
         #region Event Handlers
 
         protected override void OnFftDataBufferUpdated()
@@ -215,12 +281,14 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             base.OnFftDataBufferUpdated();
             this.CalculateMean();
             this.PopulateBandsBuffer();
+            this.CalculateRangedMeans();
         }
 
         protected override void OnUpdateFftDataCoroutineStarted()
         {
             base.OnUpdateFftDataCoroutineStarted();
             this.bandsDataBuffer = new float[this.NumberOfBands];
+            this.ConfigureRangedSpectrumMeanAmplitudeProvider();
         }
 
         protected override void OnUpdateFftDataCoroutineStopped()
@@ -230,6 +298,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
             if (this.bandsDataBuffer != null)
                 Array.Clear(this.bandsDataBuffer, 0, this.bandsDataBuffer.Length);
+
+            this.ResetRangedMeans();
         }
 
         #endregion Event Handlers
