@@ -22,7 +22,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         [SerializeField]
         [Range(-0.5f, 4.0f)]
-        private float intMeanSpAMin = 0.25f;
+        private float intMeanSpAMin = 0.1f;
 
         [SerializeField]
         [Range(1.0f, 10.0f)]
@@ -34,7 +34,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         [SerializeField]
         [Range(0.01f, 1.0f)]
-        private float intMeanSpASigma = 0.4f;
+        private float intMeanSpASigma = 0.25f;
 
         #endregion Intensity ⨯ Mean Spectrum Amplitude
 
@@ -101,16 +101,20 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
 
         #region Intensity ⨯ Mean Spectrum Amplitude
 
+        private float IntensityTuningOnSpectrumMeanAmplitudeChangeFunction(float value)
+        {
+            float f = -Mathf.Exp(-(value * value) / (2.0f * this.intMeanSpASigma * this.intMeanSpASigma)) + 1.0f;
+            f = Mathf.Pow(f, 2.2f);
+            return (this.intMeanSpAMax - this.intMeanSpAMin) * Math.Abs(f) + this.intMeanSpAMin;
+        }
+
         private void IntensityTuningOnSpectrumMeanAmplitudeChange(Light light, int lightIndex, int setIndex)
         {
             float normalizedValue = Mathf.Clamp01(this.spectrumVisualizer.SpectrumMeanAmplitude / this.spectrumVisualizer.SpectrumMeanAmplitudePeak);
             if (normalizedValue.AlmostEqual(0.0f, 0.0001))
                 light.intensity = 0.0f;
             else if (normalizedValue.IsLarger(this.intMeanSpAThreshold, 0.0000001))
-            {
-                float f = Mathf.Exp(-(normalizedValue - 1.0f) * (normalizedValue - 1.0f) / (2.0f * this.intMeanSpASigma * this.intMeanSpASigma));
-                light.intensity = (this.intMeanSpAMax - this.intMeanSpAMin) * Mathf.Clamp(f, 0.0f, float.PositiveInfinity) + this.intMeanSpAMin;
-            }
+                light.intensity = this.IntensityTuningOnSpectrumMeanAmplitudeChangeFunction(normalizedValue);
         }
 
         #endregion Intensity ⨯ Mean Spectrum Amplitude
@@ -121,7 +125,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         {
             float normalizedValue = Mathf.Clamp01(this.spectrumVisualizer.SpectrumMeanAmplitude / this.spectrumVisualizer.SpectrumMeanAmplitudePeak);
             float sigma = this.onOffMeanSpAThreshold / Mathf.Sqrt(2.0f * Mathf.Log(2.0f));
-            float f = Mathf.Clamp01(Mathf.Exp((normalizedValue * normalizedValue) / (2.0f * sigma * sigma)) - 1.0f);
+            float f = -Mathf.Exp(-(normalizedValue * normalizedValue) / (2.0f * sigma * sigma)) + 1.0f;
+            f = Mathf.Pow(f, 2.2f);
             light.intensity = (this.intensities?[setIndex]?[lightIndex] ?? 0.0f) * f;
         }
 

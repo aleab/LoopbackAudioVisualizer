@@ -162,17 +162,20 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private float CircCubesLightsIntensityFunction(float value)
         {
             value = 1.8f * Mathf.Log10(2.6f * value + 1);
-            return float.IsNaN(value) || float.IsNegativeInfinity(value) ? 0.0f :
-                   float.IsPositiveInfinity(value) ? 1.0f : value;
+            value = Mathf.Pow(value, 2.2f);
+            return float.IsNaN(value) ? 0.0f :
+                float.IsInfinity(value) ? Mathf.Clamp01(value) : value;
         }
 
         private float CircCubesEmissionValueFunction(float value)
         {
-            const double k = 0.75;
+            // TODO: Make stdDev, minValue and maxValue customizable in the Editor
+            const float stdDev = 0.28f;
             const float minValue = 0.40f;
-            const float maxValue = 0.84f;
-            value = (float)(k * Math.Log10((Math.Pow(10.0, 1 / k) - 1.0) * value + 1.0));
-            return minValue + (maxValue - minValue) * value;
+            const float maxValue = 0.88f;
+
+            value = Mathf.Exp(-(value * value) / (2.0f * stdDev * stdDev));
+            return (minValue - maxValue) * value + maxValue;
         }
 
         private void ResetCircCubes()
@@ -230,17 +233,20 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private float EllipseCubesLightsIntensityFunction(float value)
         {
             value = 1.8f * Mathf.Log10(2.6f * value + 1);
-            return float.IsNaN(value) || float.IsNegativeInfinity(value) ? 0.0f :
-                float.IsPositiveInfinity(value) ? 1.0f : value;
+            value = Mathf.Pow(value, 2.2f);
+            return float.IsNaN(value) ? 0.0f :
+                float.IsInfinity(value) ? Mathf.Clamp01(value) : value;
         }
 
         private float EllipseCubesEmissionValueFunction(float value)
         {
-            const double k = 0.75;
-            const float minValue = 0.255f;
-            const float maxValue = 0.915f;
-            value = (float)(k * Math.Log10((Math.Pow(10.0, 1 / k) - 1.0) * value + 1.0));
-            return minValue + (maxValue - minValue) * value;
+            // TODO: Make stdDev, minValue and maxValue customizable in the Editor
+            const float stdDev = 0.27f;
+            const float minValue = 0.22f;
+            const float maxValue = 0.85f;
+
+            value = Mathf.Exp(-(value * value) / (2.0f * stdDev * stdDev));
+            return (minValue - maxValue) * value + maxValue;
         }
 
         private void ResetEllipseCubes()

@@ -3,8 +3,8 @@
 using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01;
 using Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions;
-using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,6 +17,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
         private static readonly Dictionary<LightsTuner, bool> onOffMeanSpAFoldouts;
 
         private LightsTuner lightsTuner;
+        private MethodInfo intMeanSpAFunction;
 
         private SerializedProperty spectrumVisualizer;
         private SerializedProperty intMeanSpAMin;
@@ -46,6 +47,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
             base.OnEnable();
 
             this.lightsTuner = (LightsTuner)this.target;
+            this.intMeanSpAFunction = typeof(LightsTuner).GetMethod("IntensityTuningOnSpectrumMeanAmplitudeChangeFunction", BindingFlags.Instance | BindingFlags.NonPublic);
 
             this.spectrumVisualizer = this.serializedObject.FindProperty("spectrumVisualizer");
             this.intMeanSpAMin = this.serializedObject.FindProperty("intMeanSpAMin");
@@ -81,15 +83,13 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers.Visualizer
                 EditorExtension.DrawPropertyFieldSafe(this.intMeanSpAThreshold, nameof(this.intMeanSpAThreshold), new GUIContent("Value Threshold"));
                 EditorExtension.DrawPropertyFieldSafe(this.intMeanSpASigma, nameof(this.intMeanSpASigma), new GUIContent("\u03C3"));
 
-                Func<float, float> intMeanSpA = value =>
-                {
-                    float f = Mathf.Exp(-(value - 1.0f) * (value - 1.0f) / (2.0f * this.intMeanSpASigma.floatValue * this.intMeanSpASigma.floatValue));
-                    return (this.intMeanSpAMax.floatValue - this.intMeanSpAMin.floatValue) * Mathf.Clamp(f, 0.0f, float.PositiveInfinity) + this.intMeanSpAMin.floatValue;
-                };
-                float actualMin = intMeanSpA(0.0f);
-                float actualMax = intMeanSpA(1.0f);
                 GUILayout.Space(4.0f);
-                EditorGUILayout.LabelField(new GUIContent("Actual Min / Max"), new GUIContent($"{actualMin} / {actualMax}"));
+                float actualMin = (float)this.intMeanSpAFunction.Invoke(this.lightsTuner, new object[] { 0.0f });
+                float actualMax = (float)this.intMeanSpAFunction.Invoke(this.lightsTuner, new object[] { 1.0f });
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.LabelField(new GUIContent("Actual Minimum"), new GUIContent($"{actualMin}"), EditorStyles.miniLabel);
+                EditorGUILayout.LabelField(new GUIContent("Actual Maximum"), new GUIContent($"{actualMax}"), EditorStyles.miniLabel);
+                EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndVertical();
