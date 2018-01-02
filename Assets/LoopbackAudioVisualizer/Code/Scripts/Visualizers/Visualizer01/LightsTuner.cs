@@ -1,6 +1,5 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Unity;
-using MathNet.Numerics;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,26 +16,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         [SerializeField]
         [DisableWhenPlaying]
         private SpectrumVisualizer spectrumVisualizer;
-
-        #region Intensity ⨯ Mean Spectrum Amplitude
-
-        [SerializeField]
-        [Range(-0.5f, 4.0f)]
-        private float intMeanSpAMin = 0.1f;
-
-        [SerializeField]
-        [Range(1.0f, 10.0f)]
-        private float intMeanSpAMax = 6.0f;
-
-        [SerializeField]
-        [Range(0.0f, 1.0f)]
-        private float intMeanSpAThreshold = 0.05f;
-
-        [SerializeField]
-        [Range(0.01f, 1.0f)]
-        private float intMeanSpASigma = 0.25f;
-
-        #endregion Intensity ⨯ Mean Spectrum Amplitude
 
         #region On/Off Threshold ⨯ Mean Spectrum Amplitude
 
@@ -63,20 +42,22 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             for (int i = 0; i < this.lightSets.Length; ++i)
             {
                 var set = this.lightSets[i];
-                if (set?.lights != null)
+                if (set?.Lights != null)
                 {
                     if (this.intensities.Count <= i)
-                        this.intensities.Add(new List<float>(set.lights.Length));
-                    foreach (Light light in set.lights)
+                        this.intensities.Add(new List<float>(set.Lights.Length));
+                    foreach (Light light in set.Lights)
                         this.intensities[i].Add(light.intensity);
                 }
             }
 
-            this.lightSetsFunctions.Add(0, this.IntensityTuningOnSpectrumMeanAmplitudeChange);
-            this.lightSetsFunctions.Add(1, this.OnOffThresholdOnMeanSpectrumAmplitude);
+            this.lightSetsFunctions.Add(0, this.OnOffThresholdOnMeanSpectrumAmplitude);
 
             if (!this.AutoUpdate)
+            {
                 this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+                this.spectrumVisualizer.SpectrumRangeMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumRangeMeanAmplitudeUpdated;
+            }
         }
 
         protected override void OnEnable()
@@ -84,40 +65,25 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             base.OnEnable();
 
             this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated -= this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+            this.spectrumVisualizer.SpectrumRangeMeanAmplitudeUpdated -= this.SpectrumVisualizer_SpectrumRangeMeanAmplitudeUpdated;
             if (!this.AutoUpdate)
+            {
                 this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+                this.spectrumVisualizer.SpectrumRangeMeanAmplitudeUpdated += this.SpectrumVisualizer_SpectrumRangeMeanAmplitudeUpdated;
+            }
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             this.spectrumVisualizer.SpectrumMeanAmplitudeUpdated -= this.SpectrumVisualizer_SpectrumMeanAmplitudeUpdated;
+            this.spectrumVisualizer.SpectrumRangeMeanAmplitudeUpdated -= this.SpectrumVisualizer_SpectrumRangeMeanAmplitudeUpdated;
             this.ResetLightsIntensity();
         }
 
         #region LightSetsFunctions
 
         private readonly Dictionary<int, Action<Light, int, int>> lightSetsFunctions = new Dictionary<int, Action<Light, int, int>>();
-
-        #region Intensity ⨯ Mean Spectrum Amplitude
-
-        private float IntensityTuningOnSpectrumMeanAmplitudeChangeFunction(float value)
-        {
-            float f = -Mathf.Exp(-(value * value) / (2.0f * this.intMeanSpASigma * this.intMeanSpASigma)) + 1.0f;
-            f = Mathf.Pow(f, 2.2f);
-            return (this.intMeanSpAMax - this.intMeanSpAMin) * Math.Abs(f) + this.intMeanSpAMin;
-        }
-
-        private void IntensityTuningOnSpectrumMeanAmplitudeChange(Light light, int lightIndex, int setIndex)
-        {
-            float normalizedValue = Mathf.Clamp01(this.spectrumVisualizer.SpectrumMeanAmplitude / this.spectrumVisualizer.SpectrumMeanAmplitudePeak);
-            if (normalizedValue.AlmostEqual(0.0f, 0.0001))
-                light.intensity = 0.0f;
-            else if (normalizedValue.IsLarger(this.intMeanSpAThreshold, 0.0000001))
-                light.intensity = this.IntensityTuningOnSpectrumMeanAmplitudeChangeFunction(normalizedValue);
-        }
-
-        #endregion Intensity ⨯ Mean Spectrum Amplitude
 
         #region On/Off Threshold ⨯ Mean Spectrum Amplitude
 
@@ -146,12 +112,12 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
             for (int i = 0; i < this.intensities.Count; ++i)
             {
                 var set = this.lightSets[i];
-                if (set?.lights == null)
+                if (set?.Lights == null)
                     continue;
-                for (int j = 0; j < this.intensities[i].Count && j < set.lights.Length; ++j)
+                for (int j = 0; j < this.intensities[i].Count && j < set.Lights.Length; ++j)
                 {
-                    if (set.lights[j] != null)
-                        set.lights[j].intensity = this.intensities[i][j];
+                    if (set.Lights[j] != null)
+                        set.Lights[j].intensity = this.intensities[i][j];
                 }
             }
         }
@@ -159,7 +125,10 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers.Visualizer01
         private void SpectrumVisualizer_SpectrumMeanAmplitudeUpdated(object sender, EventArgs e)
         {
             this.UpdateLights(0);
-            this.UpdateLights(1);
+        }
+
+        private void SpectrumVisualizer_SpectrumRangeMeanAmplitudeUpdated(object sender, Events.SpectrumRangeMeanAmplitudeEventArgs e)
+        {
         }
     }
 }

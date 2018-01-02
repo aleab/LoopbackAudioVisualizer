@@ -867,17 +867,8 @@ MonoBehaviour:
   autoUpdate: 0
   lightSets:
   - lights:
-    - {fileID: 1528351619}
-    - {fileID: 453720226}
-    - {fileID: 931164094}
-    - {fileID: 629786995}
-  - lights:
     - {fileID: 1455564463}
   spectrumVisualizer: {fileID: 975967633}
-  intMeanSpAMin: 0.85
-  intMeanSpAMax: 2.15
-  intMeanSpAThreshold: 0
-  intMeanSpASigma: 0.38
   onOffMeanSpAThreshold: 0.065
 --- !u!1001 &1210950443
 Prefab:
