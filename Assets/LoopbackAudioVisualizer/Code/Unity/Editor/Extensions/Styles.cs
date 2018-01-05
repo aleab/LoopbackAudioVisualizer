@@ -44,6 +44,20 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
             margin = new RectOffset(EditorStyles.foldout.margin.left, EditorStyles.foldout.margin.right, EditorStyles.foldout.margin.top, EditorStyles.foldout.margin.bottom),
             padding = new RectOffset(EditorStyles.foldout.padding.left, EditorStyles.foldout.padding.right, EditorStyles.foldout.padding.top, EditorStyles.foldout.padding.bottom)
         };
+
+        /// <summary>
+        /// A text field with the style of a simple label when it's not focused.
+        /// </summary>
+        public static GUIStyle TextFieldBoldLabel { get; } = new GUIStyle(EditorStyles.textField)
+        {
+            font = EditorStyles.boldLabel.font,
+            fontSize = EditorStyles.boldLabel.fontSize,
+            fontStyle = EditorStyles.boldLabel.fontStyle,
+            normal = EditorStyles.label.normal,
+            onNormal = EditorStyles.label.onNormal,
+            hover = EditorStyles.textField.normal,
+            onHover = EditorStyles.textField.onNormal
+        };
     }
 }
 

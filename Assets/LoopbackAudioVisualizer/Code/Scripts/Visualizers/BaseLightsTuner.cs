@@ -1,5 +1,10 @@
-﻿using System;
+﻿using Aleab.LoopbackAudioVisualizer.LightTuning;
+using Aleab.LoopbackAudioVisualizer.Unity;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
@@ -13,6 +18,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         [SerializeField]
         protected LightSet[] lightSets;
+
+        [SerializeField]
+        private List<LightSetMapping> lightSetMappings = new List<LightSetMapping>();
 
         #endregion Inspector
 
@@ -45,24 +53,22 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
             }
         }
 
-        protected abstract void TuneLight(int setIndex, Light light, int lightIndex);
+        #region UpdateLights
 
         protected void UpdateLights()
         {
             if (this.lightSets != null)
             {
-                for (int i = 0; i < this.lightSets.Length; ++i)
-                    this.UpdateLights(i);
+                foreach (var lightSet in this.lightSets)
+                    lightSet?.ApplyTunings();
             }
         }
 
         protected void UpdateLights(int setIndex)
         {
-            if (this.lightSets?[setIndex]?.lights != null)
-            {
-                for (int i = 0; i < this.lightSets[setIndex].lights.Length; ++i)
-                    this.TuneLight(setIndex, this.lightSets[setIndex].lights[i], i);
-            }
+            if (setIndex < 0 || setIndex >= (this.lightSets?.Length ?? -1))
+                return;
+            this.lightSets?[setIndex]?.ApplyTunings();
         }
 
         private IEnumerator LightsUpdateCoroutine()
@@ -76,10 +82,60 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
             this.lightsUpdateCoroutine = null;
         }
 
-        [Serializable]
-        protected class LightSet
+        #endregion UpdateLights
+
+        #region LightSetMapping
+
+        protected int GetLightSetIndex(string name)
         {
-            public Light[] lights;
+            return this.lightSetMappings.SingleOrDefault(m => m.Name == name)?.Index ?? -1;
+        }
+
+#if UNITY_EDITOR
+
+        protected abstract string[] GetLightSetMappingNames();
+
+        public void PopulateLightSetMappingNames()
+        {
+            LightSetMapping[] previousMappings = this.lightSetMappings.ToArray();
+            this.lightSetMappings.Clear();
+
+            string[] names = this.GetLightSetMappingNames();
+            foreach (string name in names)
+            {
+                int previousIndex = previousMappings.SingleOrDefault(m => m.Name == name)?.Index ?? -1;
+                this.lightSetMappings.Add(new LightSetMapping(name, previousIndex));
+            }
+        }
+
+#endif
+
+        #endregion LightSetMapping
+
+        /// <summary>
+        /// A single mapping from a well-known named set to the corresponding index in the set collection.
+        /// The basic usage is for implementers to define a series of Unity-serializable integer fields and set their values in the Editor.
+        /// </summary>
+        [Serializable]
+        [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Local")]
+        public sealed class LightSetMapping
+        {
+            [SerializeField]
+            [ReadOnly]
+            private string name;
+
+            [SerializeField]
+            private int index;
+
+            public string Name { get { return this.name; } }
+
+            public int Index { get { return this.index; } }
+
+            public LightSetMapping(string name, int index = -1)
+            {
+                this.name = name;
+                this.index = index;
+            }
         }
     }
 }

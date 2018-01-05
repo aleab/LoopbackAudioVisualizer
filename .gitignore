@@ -63,3 +63,5 @@ Assets/LoopbackAudioVisualizer/AudioVisualizer01_EditorOnly\.unity
 **/Lightmap-*_comp_dir.png
 **/Lightmap-*_comp_light.exr
 **/Lightmap-*_comp_shadowmask.png
+
+count-lines\.sh

@@ -1,10 +1,10 @@
 ﻿#if UNITY_EDITOR
 
+using Aleab.LoopbackAudioVisualizer.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Aleab.LoopbackAudioVisualizer.Helpers;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,11 +12,22 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
 {
     public static class EditorExtension
     {
+        public static float SingleLineHeight { get { return EditorGUIUtility.singleLineHeight + 2.0f; } }
+
+        public static float OneCharButtonWidth { get { return 18.0f; } }
+
         public static GUILayoutOption[] CalcMinMaxWidth(GUIContent content, GUIStyle style)
         {
             float minWidth, maxWidth;
             style.CalcMinMaxWidth(content, out minWidth, out maxWidth);
             return new[] { GUILayout.MinWidth(minWidth), GUILayout.MaxWidth(maxWidth) };
+        }
+
+        public static float CalcMaxWitdh(GUIContent content, GUIStyle style)
+        {
+            float _, maxWidth;
+            style.CalcMinMaxWidth(content, out _, out maxWidth);
+            return maxWidth;
         }
 
         public static void DrawHeader(string text, GUIStyle style = null)
@@ -122,7 +133,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
             return DrawErrorLabel(propertyName, $"{label.text}\n{label.tooltip}");
         }
 
-        #endregion DrawRangeFieldSafe
+        #endregion DrawIntRangeFieldSafe
 
         public static bool DrawEnumPopupSafe<TEnum>(SerializedProperty property, string propertyName, GUIContent label, ICollection<TEnum> values, Func<TEnum, string> displayedOptionsSelector = null, params GUILayoutOption[] options)
             where TEnum : struct, IConvertible, IComparable, IFormattable
@@ -161,7 +172,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
                     {
                         int i = 0;
                         SerializedProperty emptyProperty = property.GetArrayElementAtIndex(0).Copy();
-                        emptyProperty.ClearValues();
+                        emptyProperty.ClearValue();
 
                         float minLineLabelWidth, maxLineLabelWidth;
                         Styles.IndentedRightAlignedMiniLabel.CalcMinMaxWidth(new GUIContent((property.arraySize - 1).ToString()), out minLineLabelWidth, out maxLineLabelWidth);
@@ -196,6 +207,180 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
         }
 
         #endregion DrawCompactArray
+
+        #region DrawArraySafe
+
+        public static bool DrawArraySafe(SerializedProperty property, string propertyName, GUIContent label, bool includeChildren = true, params GUILayoutOption[] options)
+        {
+            if (property != null)
+            {
+                if (property.isArray)
+                {
+                    // Foldout + Size or Label if array length <= 0
+                    EditorGUILayout.BeginHorizontal();
+                    property.isExpanded = EditorGUILayout.Foldout(property.isExpanded, label, true, property.arraySize > 0 ? EditorStyles.foldout : Styles.FoldoutNoArrow);
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(new GUIContent($"Size: {property.arraySize}"), EditorStyles.label);
+                    if (GUILayout.Button(new GUIContent("+"), GUILayout.MaxWidth(24.0f)))
+                        property.arraySize++;
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.EndHorizontal();
+
+                    if (property.isExpanded && property.arraySize > 0)
+                    {
+                        int i = 0;
+                        float minLineLabelWidth, maxLineLabelWidth;
+                        new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleRight,
+                            padding = { left = 12 * (EditorGUI.indentLevel + 1) }
+                        }.CalcMinMaxWidth(new GUIContent((property.arraySize - 1).ToString()), out minLineLabelWidth, out maxLineLabelWidth);
+
+                        GUILayout.Space(4.0f);
+                        EditorGUILayout.BeginVertical();
+                        while (i < property.arraySize)
+                        {
+                            SerializedProperty arrayElement = property.GetArrayElementAtIndex(i);
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(new GUIContent($"{i}"), EditorStyles.miniLabel, GUILayout.MinWidth(minLineLabelWidth), GUILayout.MaxWidth(maxLineLabelWidth));
+                            EditorGUILayout.PropertyField(arrayElement, GUIContent.none, true);
+                            if (GUILayout.Button(new GUIContent("-"), GUILayout.MaxWidth(24.0f)))
+                            {
+                                if (arrayElement.propertyType == SerializedPropertyType.ObjectReference && arrayElement.objectReferenceValue != null)
+                                    property.DeleteArrayElementAtIndex(i);
+                                property.DeleteArrayElementAtIndex(i);
+                                i--;
+                            }
+                            EditorGUILayout.EndHorizontal();
+                            i++;
+                        }
+                        EditorGUILayout.EndVertical();
+                    }
+                }
+                else
+                    EditorGUILayout.PropertyField(property, label, includeChildren, options);
+                return true;
+            }
+            return DrawErrorLabel(propertyName, $"{label.text}\n{label.tooltip}");
+        }
+
+        public static bool DrawArraySafe(Rect totalPosition, SerializedProperty property, string propertyName, GUIContent label, bool includeChildren = true, string elementLabel = "")
+        {
+            if (property != null)
+            {
+                if (property.isArray)
+                {
+                    EditorGUI.BeginProperty(totalPosition, label, property);
+
+                    // Foldout | Size | [+]
+                    GUIContent sizeLabel = new GUIContent($"Size: {property.arraySize}");
+                    float sizeLabelWidth = CalcMaxWitdh(sizeLabel, EditorStyles.label) + 18.0f;
+
+                    Rect foldoutLabelRect = new Rect(totalPosition.x, totalPosition.y, CalcMaxWitdh(label, EditorStyles.label), SingleLineHeight);
+                    Rect sizeLabelRect = new Rect(totalPosition.x + totalPosition.width - sizeLabelWidth - 8.0f - OneCharButtonWidth - 8.0f, foldoutLabelRect.y, sizeLabelWidth, foldoutLabelRect.height);
+                    Rect addBtnRect = new Rect(sizeLabelRect.x + sizeLabelRect.width + 8.0f, foldoutLabelRect.y, OneCharButtonWidth, SingleLineHeight - 2.0f);
+
+                    property.isExpanded = EditorGUI.Foldout(foldoutLabelRect, property.isExpanded, label, true, property.arraySize > 0 ? EditorStyles.foldout : Styles.FoldoutNoArrow);
+                    EditorGUI.LabelField(sizeLabelRect, sizeLabel, EditorStyles.label);
+                    if (GUI.Button(addBtnRect, new GUIContent("+")))
+                    {
+                        property.arraySize++;
+                        property.GetArrayElementAtIndex(property.arraySize - 1).ClearValue();
+                    }
+
+                    // Array elements
+                    if (property.isExpanded && property.arraySize > 0)
+                    {
+                        int i = 0;
+                        float indexLabelWidth = CalcMaxWitdh(new GUIContent($"{property.arraySize - 1}"), Styles.IndentedRightAlignedMiniLabel) + 16.0f;
+
+                        Rect indentedRect = EditorGUI.IndentedRect(new Rect(totalPosition.x, totalPosition.y, totalPosition.width, totalPosition.height));
+                        float currentChildrenHeight = 0.0f;
+                        while (i < property.arraySize)
+                        {
+                            SerializedProperty arrayElement = property.GetArrayElementAtIndex(i);
+                            float height = EditorGUI.GetPropertyHeight(arrayElement, true) + (arrayElement.isExpanded ? SingleLineHeight : 0.0f);
+                            Rect elementRect = new Rect(indentedRect.x, indentedRect.y + currentChildrenHeight + SingleLineHeight, indentedRect.width, height);
+                            currentChildrenHeight += height;
+
+                            EditorGUI.BeginProperty(elementRect, GUIContent.none, arrayElement);
+                            // Index | Property | [-]
+                            Rect indexRect = new Rect(elementRect.x, elementRect.y, indexLabelWidth, SingleLineHeight);
+                            Rect removeBtnRect = new Rect(elementRect.x + elementRect.width - OneCharButtonWidth - 8.0f, elementRect.y, OneCharButtonWidth, SingleLineHeight - 2.0f);
+                            Rect propertyRect = new Rect(elementRect.x + indexRect.width, elementRect.y, elementRect.width - indexRect.width - removeBtnRect.width - 16.0f, elementRect.height);
+
+                            EditorGUI.LabelField(indexRect, new GUIContent($"{i}"), Styles.IndentedRightAlignedMiniLabel);
+                            EditorGUI.PropertyField(propertyRect, arrayElement, string.IsNullOrWhiteSpace(elementLabel) ? GUIContent.none : new GUIContent($"{elementLabel}{i}"), true);
+                            if (GUI.Button(removeBtnRect, new GUIContent("-")))
+                            {
+                                if (arrayElement.propertyType == SerializedPropertyType.ObjectReference && arrayElement.objectReferenceValue != null)
+                                    property.DeleteArrayElementAtIndex(i);
+                                property.DeleteArrayElementAtIndex(i);
+                                i--;
+                            }
+                            i++;
+
+                            EditorGUI.EndProperty();
+                        }
+                    }
+                    EditorGUI.EndProperty();
+                }
+                else
+                    EditorGUI.PropertyField(totalPosition, property, label, includeChildren);
+                return true;
+            }
+            return DrawErrorLabel(propertyName, $"{label.text}\n{label.tooltip}");
+        }
+
+        #endregion DrawArraySafe
+
+        #region DrawReadonlyArraySafe
+
+        public static bool DrawReadonlyArraySafe(SerializedProperty property, string propertyName, GUIContent label, bool includeChildren = true, params GUILayoutOption[] options)
+        {
+            if (property != null)
+            {
+                if (property.isArray)
+                {
+                    // Foldout + Size or Label if array length <= 0
+                    EditorGUILayout.BeginHorizontal();
+                    property.isExpanded = EditorGUILayout.Foldout(property.isExpanded, label, true, property.arraySize > 0 ? EditorStyles.foldout : Styles.FoldoutNoArrow);
+                    EditorGUILayout.LabelField(new GUIContent($"Size: {property.arraySize}"), EditorStyles.label);
+                    EditorGUILayout.EndHorizontal();
+
+                    if (property.isExpanded && property.arraySize > 0)
+                    {
+                        int i = 0;
+                        float minLineLabelWidth, maxLineLabelWidth;
+                        GUIStyle style = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleRight,
+                            padding = { left = 12 * (EditorGUI.indentLevel + 1) }
+                        };
+                        style.CalcMinMaxWidth(new GUIContent($"{property.arraySize - 1}"), out minLineLabelWidth, out maxLineLabelWidth);
+
+                        GUILayout.Space(4.0f);
+                        EditorGUILayout.BeginVertical();
+                        while (i < property.arraySize)
+                        {
+                            SerializedProperty arrayElement = property.GetArrayElementAtIndex(i);
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(new GUIContent($"{i}"), EditorStyles.miniLabel, GUILayout.MinWidth(minLineLabelWidth), GUILayout.MaxWidth(maxLineLabelWidth));
+                            EditorGUILayout.PropertyField(arrayElement, GUIContent.none, true);
+                            EditorGUILayout.EndHorizontal();
+                            i++;
+                        }
+                        EditorGUILayout.EndVertical();
+                    }
+                }
+                else
+                    EditorGUILayout.PropertyField(property, label, includeChildren, options);
+                return true;
+            }
+            return DrawErrorLabel(propertyName, $"{label.text}\n{label.tooltip}");
+        }
+
+        #endregion
 
         public static bool DrawTogglePropertyField(SerializedProperty property, GUIContent label, bool includeChildren = true, params GUILayoutOption[] options)
         {

@@ -10,13 +10,19 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
     [CustomEditor(typeof(BaseLightsTuner))]
     public class BaseLightsTunerEditor : Editor
     {
+        private BaseLightsTuner baseLightsTuner;
+
         private SerializedProperty autoUpdate;
         private SerializedProperty lightSets;
+        private SerializedProperty lightSetMappings;
 
         protected virtual void OnEnable()
         {
+            this.baseLightsTuner = this.serializedObject.targetObject as BaseLightsTuner;
+
             this.autoUpdate = this.serializedObject.FindProperty("autoUpdate");
             this.lightSets = this.serializedObject.FindProperty("lightSets");
+            this.lightSetMappings = this.serializedObject.FindProperty("lightSetMappings");
         }
 
         public override void OnInspectorGUI()
@@ -29,6 +35,11 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
 
             EditorExtension.DrawPropertyFieldSafe(this.autoUpdate, nameof(this.autoUpdate), new GUIContent("Auto Update"));
             EditorExtension.DrawPropertyFieldSafe(this.lightSets, nameof(this.lightSets), new GUIContent("Light Sets"));
+
+            // FIX for `ArgumentException: GUILayout: Mismatched LayoutGroup.repaint`
+            if (Event.current.type == EventType.Repaint)
+                this.baseLightsTuner.PopulateLightSetMappingNames();
+            EditorExtension.DrawReadonlyArraySafe(this.lightSetMappings, nameof(this.lightSetMappings), new GUIContent("Light Set Mapping"));
 
             this.serializedObject.ApplyModifiedProperties();
         }
