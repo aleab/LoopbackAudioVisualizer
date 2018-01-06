@@ -10,7 +10,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         event EventHandler SpectrumMeanAmplitudeUpdated;
 
         /// <summary>
-        /// An weighted mean of the values of the spectrum's samples.
+        /// A weighted mean of the current values of the spectrum's samples.
         /// </summary>
         float SpectrumMeanAmplitude { get; }
 
@@ -18,6 +18,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         /// The highest mean amplitude reached.
         /// </summary>
         float SpectrumMeanAmplitudePeak { get; }
+
+        // TODO: SpectrumMeanAmplitudeRecentPeak: Provides the highest peak reached by the mean amplitude in a recent (configurable) interval of time.
 
         /// <summary>
         /// The function used to calculate the weight for each frequency band.
