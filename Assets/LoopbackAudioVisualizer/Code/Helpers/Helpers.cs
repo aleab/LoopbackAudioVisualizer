@@ -1,7 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 #if UNITY_EDITOR
 
@@ -21,7 +22,7 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
 #if UNITY_EDITOR
 
         [SuppressMessage("ReSharper", "RedundantCaseLabel"), SuppressMessage("ReSharper", "EmptyGeneralCatchClause")]
-        public static void ClearValues(this SerializedProperty property)
+        public static void ClearValue(this SerializedProperty property)
         {
             var logHandler = Debug.unityLogger.logHandler;
             Debug.unityLogger.logHandler = null;
@@ -30,7 +31,7 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
             switch (property.propertyType)
             {
                 case SerializedPropertyType.AnimationCurve:
-                    property.animationCurveValue = default(AnimationCurve);
+                    property.animationCurveValue = null;
                     break;
 
                 case SerializedPropertyType.ArraySize:
@@ -58,7 +59,7 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
                     break;
 
                 case SerializedPropertyType.ExposedReference:
-                    property.exposedReferenceValue = default(Object);
+                    property.exposedReferenceValue = null;
                     break;
 
                 case SerializedPropertyType.FixedBufferSize:
@@ -73,7 +74,7 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
                     break;
 
                 case SerializedPropertyType.ObjectReference:
-                    property.objectReferenceValue = default(Object);
+                    property.objectReferenceValue = null;
                     break;
 
                 case SerializedPropertyType.Quaternion:
@@ -133,6 +134,80 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
                 Debug.LogWarning($"[{nameof(Helpers)}.{nameof(ClearConsole)}] Couldn't find LogEntries!");
         }
 
+        // TODO: Change to extension methods and rename to "GetActualObject"
+
+        #region GetActualObjectForSerializedProperty
+
+        public static T GetActualObjectForSerializedProperty<T>(SerializedProperty property) where T : class
+        {
+            object obj = GetActualObjectForSerializedProperty(property);
+            return obj as T;
+        }
+
+        public static object GetActualObjectForSerializedProperty(SerializedProperty property, Type objectType)
+        {
+            object obj = GetActualObjectForSerializedProperty(property);
+            return objectType.IsInstanceOfType(obj) ? obj : null;
+        }
+
+        private static object GetActualObjectForSerializedProperty(SerializedProperty property)
+        {
+            object obj = property.serializedObject.targetObject;
+
+            string path = property.propertyPath.Replace(".Array.data[", "[");
+            string[] pathElements = path.Split('.');
+            foreach (var element in pathElements)
+            {
+                if (element.Contains("["))
+                {
+                    string elementName = element.Substring(0, element.IndexOf("[", StringComparison.Ordinal));
+                    var index = Convert.ToInt32(element.Substring(element.IndexOf("[", StringComparison.Ordinal)).Replace("[", "").Replace("]", ""));
+                    obj = GetValue(obj, elementName, index);
+                }
+                else
+                    obj = GetValue(obj, element);
+            }
+            return obj;
+        }
+
+        #endregion GetActualObjectForSerializedProperty
+
 #endif
+
+        private static object GetValue(object source, string name)
+        {
+            if (source == null)
+                return null;
+            Type type = source.GetType();
+
+            while (type != null)
+            {
+                FieldInfo field = type.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                if (field != null)
+                    return field.GetValue(source);
+
+                PropertyInfo property = type.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (property != null)
+                    return property.GetValue(source, null);
+
+                type = type.BaseType;
+            }
+            return null;
+        }
+
+        private static object GetValue(object source, string name, int index)
+        {
+            var enumerable = GetValue(source, name) as IEnumerable;
+            if (enumerable == null)
+                return null;
+
+            var enumerator = enumerable.GetEnumerator();
+            for (int i = 0; i <= index; i++)
+            {
+                if (!enumerator.MoveNext())
+                    return null;
+            }
+            return enumerator.Current;
+        }
     }
 }

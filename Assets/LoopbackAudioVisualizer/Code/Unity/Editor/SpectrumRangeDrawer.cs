@@ -11,7 +11,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            SpectrumRange spectrumRange = Extensions.Helpers.GetActualObjectForSerializedProperty<SpectrumRange>(property);
+            SpectrumRange spectrumRange = Helpers.Helpers.GetActualObjectForSerializedProperty<SpectrumRange>(property);
 
             float[] values = { spectrumRange.lowerFrequency, spectrumRange.higherFrequency };
             EditorGUI.MultiFloatField(position, label, new[] { new GUIContent("L", "Lower frequency (Hz)"), new GUIContent("H", "Higher frequency (Hz)") }, values);
