@@ -60,7 +60,7 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
             this.Init();
         }
 
-        public void Init()
+        private void Init()
         {
             this.ReplaceDefaultLightValues();
             this.CreateLightSetTunings();

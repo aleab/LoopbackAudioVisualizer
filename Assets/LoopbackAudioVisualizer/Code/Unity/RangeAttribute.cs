@@ -22,12 +22,20 @@ namespace Aleab.LoopbackAudioVisualizer.Unity
 
         public override bool OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            if (property.propertyType == SerializedPropertyType.Float)
-                EditorGUI.Slider(position, property, this.min, this.max, label);
-            else if (property.propertyType == SerializedPropertyType.Integer)
-                EditorGUI.IntSlider(position, property, (int)this.min, (int)this.max, label);
-            else
-                EditorGUI.LabelField(position, label.text, "Use Range with float or int.");
+            switch (property.propertyType)
+            {
+                case SerializedPropertyType.Float:
+                    EditorGUI.Slider(position, property, this.min, this.max, label);
+                    break;
+
+                case SerializedPropertyType.Integer:
+                    EditorGUI.IntSlider(position, property, (int)this.min, (int)this.max, label);
+                    break;
+
+                default:
+                    EditorGUI.LabelField(position, label.text, "Use Range with float or int.");
+                    break;
+            }
             return true;
         }
 

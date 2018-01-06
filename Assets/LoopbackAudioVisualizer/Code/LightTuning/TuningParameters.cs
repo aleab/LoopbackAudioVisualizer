@@ -41,7 +41,7 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
 
         #endregion Serialized Fields
 
-        public event EventHandler<InternalTuningParametersChangedEventArgs> InternalTuningParametersChanged;
+        #region Accessors
 
         public string TuningName { get { return this.tuningName; } }
 
@@ -54,6 +54,12 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
             get { return this.internalTuningParameters; }
             set { this.internalTuningParameters = value; }
         }
+
+        #endregion Accessors
+
+        #region InternalTuningParametersChanged
+
+        public event EventHandler<InternalTuningParametersChangedEventArgs> InternalTuningParametersChanged;
 
         public void ListenForInternalTuningParametersChanges()
         {
@@ -74,6 +80,8 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
         {
             this.InternalTuningParametersChanged?.Invoke(sender, new InternalTuningParametersChangedEventArgs(this));
         }
+
+        #endregion InternalTuningParametersChanged
 
         /// <inheritdoc />
         public override bool Equals(object obj)

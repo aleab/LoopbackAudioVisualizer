@@ -15,12 +15,12 @@ namespace Aleab.LoopbackAudioVisualizer.Unity
     {
         public List<MultiPropertyAttribute> stored = new List<MultiPropertyAttribute>();
 
+#if UNITY_EDITOR
+
         public virtual GUIContent BuildLabel(GUIContent label)
         {
             return label;
         }
-
-#if UNITY_EDITOR
 
         /// <summary>
         /// Override this method to make your own GUI for the property.

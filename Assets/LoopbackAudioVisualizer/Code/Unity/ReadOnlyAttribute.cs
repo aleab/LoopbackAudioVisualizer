@@ -10,9 +10,9 @@ namespace Aleab.LoopbackAudioVisualizer.Unity
 {
     public class ReadOnlyAttribute : MultiPropertyAttribute
     {
-        protected virtual bool Enabled { get { return false; } }
-
 #if UNITY_EDITOR
+
+        protected virtual bool Enabled { get { return false; } }
 
         public override bool OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
