@@ -39,7 +39,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Visualizers
             // FIX for `ArgumentException: GUILayout: Mismatched LayoutGroup.repaint`
             if (Event.current.type == EventType.Repaint)
                 this.baseLightsTuner.PopulateLightSetMappingNames();
-            EditorExtension.DrawReadonlyArraySafe(this.lightSetMappings, nameof(this.lightSetMappings), new GUIContent("Light Set Mapping"));
+            EditorExtension.DrawReadonlyArraySafe(this.lightSetMappings, nameof(this.lightSetMappings), new GUIContent("Light Set Mappings"));
 
             this.serializedObject.ApplyModifiedProperties();
         }
