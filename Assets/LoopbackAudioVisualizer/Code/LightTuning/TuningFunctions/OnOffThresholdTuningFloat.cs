@@ -37,9 +37,10 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning.TuningFunctions
         protected override float ProcessInput(float x)
         {
             float F = 0.0f;
+            float X = Mathf.Clamp(x, this.xMin, this.xMax);
             if (!(float.IsInfinity(this.e) && x <= this.threshold))
-                F = Mathf.Clamp((float)(1.0 / (1.0 + Math.Pow((double)(this.threshold - this.xMin) / (x - this.xMin), this.e))), this.xMin, this.xMax);
-            return (this.yMax - this.yMin) * F + this.yMin;
+                F = (float)(1.0 / (1.0 + Math.Pow((double)(this.threshold - this.xMin) / (X - this.xMin), this.e)));
+            return Mathf.Clamp((this.yMax - this.yMin) * F + this.yMin, this.yMin, this.yMax);
         }
 
         /// <inheritdoc />
