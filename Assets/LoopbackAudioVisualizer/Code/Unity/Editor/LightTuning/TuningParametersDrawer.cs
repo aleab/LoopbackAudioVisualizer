@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 
+using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.LightTuning;
 using Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions;
 using UnityEditor;
@@ -25,7 +26,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.LightTuning
 
             if (property.isExpanded)
             {
-                TuningParameters tuningParameters = Helpers.Helpers.GetActualObjectForSerializedProperty<TuningParameters>(property);
+                TuningParameters tuningParameters = property.GetActualObject<TuningParameters>();
                 if (tuningParameters == null)
                     return;
 
@@ -51,7 +52,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.LightTuning
                 {
                     Rect parametersRect = EditorGUI.IndentedRect(new Rect(parametersFoldoutRect.x, parametersFoldoutRect.y + parametersFoldoutRect.height, parametersFoldoutRect.width, parametersFoldoutRect.height));
 
-                    InternalTuningParameters internalParameters = Helpers.Helpers.GetActualObjectForSerializedProperty<InternalTuningParameters>(this.internalTuningParameters);
+                    InternalTuningParameters internalParameters = this.internalTuningParameters.GetActualObject<InternalTuningParameters>();
                     InternalTuningParametersDrawer customDrawer = (InternalTuningParametersDrawer)Extensions.Helpers.GetPropertyDrawerForType(internalParameters.GetType());
                     customDrawer?.GetPropertyHeight(this.internalTuningParameters, GUIContent.none);
                     customDrawer?.OnGUI(parametersRect, this.internalTuningParameters, GUIContent.none);
@@ -77,7 +78,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.LightTuning
 
                 if (this.internalTuningParameters.isExpanded)
                 {
-                    TuningParameters tuningParameters = Helpers.Helpers.GetActualObjectForSerializedProperty<TuningParameters>(property);
+                    TuningParameters tuningParameters = property.GetActualObject<TuningParameters>();
                     InternalTuningParametersDrawer customDrawer = (InternalTuningParametersDrawer)Extensions.Helpers.GetPropertyDrawerForType(tuningParameters?.InternalTuningParameters?.GetType());
                     height += customDrawer?.GetPropertyHeight(this.internalTuningParameters, GUIContent.none) ?? EditorGUI.GetPropertyHeight(this.internalTuningParameters, true);
                 }

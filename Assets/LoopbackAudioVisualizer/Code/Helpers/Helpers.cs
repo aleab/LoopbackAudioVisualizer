@@ -24,6 +24,8 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
         [SuppressMessage("ReSharper", "RedundantCaseLabel"), SuppressMessage("ReSharper", "EmptyGeneralCatchClause")]
         public static void ClearValue(this SerializedProperty property)
         {
+            // TODO: Clear Generic properties
+
             var logHandler = Debug.unityLogger.logHandler;
             Debug.unityLogger.logHandler = null;
             Debug.unityLogger.logEnabled = false;
@@ -60,9 +62,6 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
 
                 case SerializedPropertyType.ExposedReference:
                     property.exposedReferenceValue = null;
-                    break;
-
-                case SerializedPropertyType.FixedBufferSize:
                     break;
 
                 case SerializedPropertyType.Float:
@@ -115,6 +114,7 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
 
                 case SerializedPropertyType.Character:
                 case SerializedPropertyType.Generic:
+                case SerializedPropertyType.FixedBufferSize:
                 case SerializedPropertyType.Gradient:
                 case SerializedPropertyType.LayerMask:
                 default:
@@ -134,23 +134,21 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
                 Debug.LogWarning($"[{nameof(Helpers)}.{nameof(ClearConsole)}] Couldn't find LogEntries!");
         }
 
-        // TODO: Change to extension methods and rename to "GetActualObject"
+        #region GetActualObject
 
-        #region GetActualObjectForSerializedProperty
-
-        public static T GetActualObjectForSerializedProperty<T>(SerializedProperty property) where T : class
+        public static T GetActualObject<T>(this SerializedProperty property) where T : class
         {
-            object obj = GetActualObjectForSerializedProperty(property);
+            object obj = property.GetActualObject();
             return obj as T;
         }
 
-        public static object GetActualObjectForSerializedProperty(SerializedProperty property, Type objectType)
+        public static object GetActualObject(this SerializedProperty property, Type objectType)
         {
-            object obj = GetActualObjectForSerializedProperty(property);
+            object obj = property.GetActualObject();
             return objectType.IsInstanceOfType(obj) ? obj : null;
         }
 
-        private static object GetActualObjectForSerializedProperty(SerializedProperty property)
+        private static object GetActualObject(this SerializedProperty property)
         {
             object obj = property.serializedObject.targetObject;
 
@@ -160,17 +158,34 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
             {
                 if (element.Contains("["))
                 {
-                    string elementName = element.Substring(0, element.IndexOf("[", StringComparison.Ordinal));
+                    string arrayName = element.Substring(0, element.IndexOf("[", StringComparison.Ordinal));
                     var index = Convert.ToInt32(element.Substring(element.IndexOf("[", StringComparison.Ordinal)).Replace("[", "").Replace("]", ""));
-                    obj = GetValue(obj, elementName, index);
+                    obj = GetValue(obj, arrayName, index);
                 }
                 else
                     obj = GetValue(obj, element);
             }
             return obj;
         }
+            object targetObject = property.serializedObject.targetObject;
 
-        #endregion GetActualObjectForSerializedProperty
+            string path = property.propertyPath.Replace(".Array.data[", "[");
+            string[] pathElements = path.Split('.');
+            foreach (var element in pathElements)
+            {
+                if (element.Contains("["))
+                {
+                    string arrayName = element.Substring(0, element.IndexOf("[", StringComparison.Ordinal));
+                    var index = Convert.ToInt32(element.Substring(element.IndexOf("[", StringComparison.Ordinal)).Replace("[", "").Replace("]", ""));
+                    targetObject = GetValue(targetObject, arrayName, index);
+                }
+                else
+                    targetObject = GetValue(targetObject, element);
+            }
+            return targetObject;
+        }
+
+        #endregion GetActualObject
 
 #endif
 

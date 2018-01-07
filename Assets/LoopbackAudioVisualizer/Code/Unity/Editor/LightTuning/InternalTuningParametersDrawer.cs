@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 
+using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.LightTuning;
 using Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions;
 using System;
@@ -87,7 +88,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.LightTuning
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            this.internalParameters = Helpers.Helpers.GetActualObjectForSerializedProperty<InternalTuningParameters>(property);
+            this.internalParameters = property.GetActualObject<InternalTuningParameters>();
 
             this.targetObject = property.serializedObject.targetObject;
             this.ipComponent = property.FindPropertyRelative(nameof(this.ipComponent));
