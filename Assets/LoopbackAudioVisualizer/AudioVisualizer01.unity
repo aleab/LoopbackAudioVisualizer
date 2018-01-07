@@ -948,7 +948,7 @@ MonoBehaviour:
     lights:
     - {fileID: 1455564463}
     tunings:
-    - tuningName: OnOffThreshold - MSA
+    - tuningName: OnOffThreshold x MSA -> SpotAngle
       tuningTarget: 1
       tuningType: 0
       internalTuningParameters:
@@ -965,10 +965,31 @@ MonoBehaviour:
         parametersValues:
         - 0
         - 1
-        - 0.1
-        - 3.75
+        - 0.3
+        - 2
+        - 0.85
+        - 1.1
+    - tuningName: OnOffThreshold x MSA -> Range
+      tuningTarget: 0
+      tuningType: 0
+      internalTuningParameters:
+        ipComponent: {fileID: 1058555431}
+        ipName: OnOffThresholdOnMeanSpectrumAmplitude_GetX
+        ipReturnType: System.Single
+        parametersNames:
+        - XMin
+        - XMax
+        - Threshold
+        - E
+        - YMin
+        - YMax
+        parametersValues:
         - 0
-        - 1
+        - 0.3
+        - 0.2
+        - 0.7
+        - 0.7
+        - 1.3
   lightSetMappings:
   - name: index_OnOffTh_MSA
     index: 0
