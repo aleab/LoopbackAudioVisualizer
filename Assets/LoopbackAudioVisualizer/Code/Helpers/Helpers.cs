@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -118,6 +119,7 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
                 case SerializedPropertyType.Gradient:
                 case SerializedPropertyType.LayerMask:
                 default:
+                    property.SetActualObjectToDefault();
                     break;
             }
 
@@ -134,7 +136,7 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
                 Debug.LogWarning($"[{nameof(Helpers)}.{nameof(ClearConsole)}] Couldn't find LogEntries!");
         }
 
-        #region GetActualObject
+        #region GetActualObject / SetActualObject
 
         public static T GetActualObject<T>(this SerializedProperty property) where T : class
         {
@@ -167,27 +169,67 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
             }
             return obj;
         }
-            object targetObject = property.serializedObject.targetObject;
+
+        public static bool SetActualObjectToDefault(this SerializedProperty property)
+        {
+            object source = property.serializedObject.targetObject;
 
             string path = property.propertyPath.Replace(".Array.data[", "[");
             string[] pathElements = path.Split('.');
-            foreach (var element in pathElements)
+            for (int i = 0; i < pathElements.Length - 1; ++i)
             {
+                string element = pathElements[i];
                 if (element.Contains("["))
                 {
                     string arrayName = element.Substring(0, element.IndexOf("[", StringComparison.Ordinal));
                     var index = Convert.ToInt32(element.Substring(element.IndexOf("[", StringComparison.Ordinal)).Replace("[", "").Replace("]", ""));
-                    targetObject = GetValue(targetObject, arrayName, index);
+                    source = GetValue(source, arrayName, index);
                 }
                 else
-                    targetObject = GetValue(targetObject, element);
+                    source = GetValue(source, element);
             }
-            return targetObject;
+
+            string name = pathElements.Last();
+            if (name.Contains("["))
+            {
+                string arrayName = name.Substring(0, name.IndexOf("[", StringComparison.Ordinal));
+                var index = Convert.ToInt32(name.Substring(name.IndexOf("[", StringComparison.Ordinal)).Replace("[", "").Replace("]", ""));
+                return SetDefaultValue(source, arrayName, index);
+            }
+            return SetDefaultValue(source, name);
         }
 
-        #endregion GetActualObject
+        #endregion GetActualObject / SetActualObject
+
+        public static void InsertNewArrayElement(this SerializedProperty property)
+        {
+            if (!property.isArray)
+                return;
+
+            object source = property.serializedObject.targetObject;
+
+            string path = property.propertyPath.Replace(".Array.data[", "[");
+            string[] pathElements = path.Split('.');
+            for (int i = 0; i < pathElements.Length - 1; ++i)
+            {
+                string element = pathElements[i];
+                if (element.Contains("["))
+                {
+                    string arrayName = element.Substring(0, element.IndexOf("[", StringComparison.Ordinal));
+                    var index = Convert.ToInt32(element.Substring(element.IndexOf("[", StringComparison.Ordinal)).Replace("[", "").Replace("]", ""));
+                    source = GetValue(source, arrayName, index);
+                }
+                else
+                    source = GetValue(source, element);
+            }
+
+            string name = pathElements.Last();
+            SetDefaultValue(source, name, property.arraySize);
+        }
 
 #endif
+
+        #region GetValue / SetValue
 
         private static object GetValue(object source, string name)
         {
@@ -210,19 +252,101 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
             return null;
         }
 
+        private static bool SetValue(object source, string name, object value)
+        {
+            if (source == null)
+                return false;
+            Type type = source.GetType();
+
+            while (type != null)
+            {
+                FieldInfo field = type.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                if (field != null)
+                {
+                    field.SetValue(source, value);
+                    return true;
+                }
+
+                PropertyInfo property = type.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (property != null)
+                {
+                    property.SetValue(source, value);
+                    return true;
+                }
+
+                type = type.BaseType;
+            }
+            return false;
+        }
+
         private static object GetValue(object source, string name, int index)
         {
-            var enumerable = GetValue(source, name) as IEnumerable;
-            if (enumerable == null)
-                return null;
-
-            var enumerator = enumerable.GetEnumerator();
-            for (int i = 0; i <= index; i++)
-            {
-                if (!enumerator.MoveNext())
-                    return null;
-            }
-            return enumerator.Current;
+            var arr = GetValue(source, name) as IList;
+            return index < (arr?.Count ?? 0) ? arr?[index] : null;
         }
+
+        private static bool SetValue(object source, string name, int index, object value)
+        {
+            var arr = GetValue(source, name);
+            Type type = arr.GetType();
+            if (type.IsArray)
+            {
+                Type elementType = type.GetElementType();
+                var list = arr as IList;
+                if (list != null)
+                {
+                    if (index < list.Count)
+                    {
+                        list[index] = value;
+                        return true;
+                    }
+
+                    // Create a larger array if the new element's index is out of bounds
+                    if (elementType != null)
+                    {
+                        var newArrList = new ArrayList(list) { value };
+                        var newArr = newArrList.ToArray(elementType);
+                        return SetValue(source, name, newArr);
+                    }
+                }
+            }
+            return false;
+        }
+
+        private static object GetDefault(Type type)
+        {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+
+        private static bool SetDefaultValue(object source, string name)
+        {
+            object currentValue = GetValue(source, name);
+            if (currentValue != null)
+            {
+                Type type = currentValue.GetType();
+                object value = GetDefault(type);
+                return SetValue(source, name, value);
+            }
+            return false;
+        }
+
+        private static bool SetDefaultValue(object source, string name, int index)
+        {
+            object arr = GetValue(source, name);
+            if (arr != null)
+            {
+                Type type = arr.GetType();
+                if (type.IsArray)
+                {
+                    Type arrayType = type.GetElementType();
+                    object value = GetDefault(arrayType);
+                    return SetValue(source, name, index, value);
+                }
+                return false;
+            }
+            return false;
+        }
+
+        #endregion GetValue / SetValue
     }
 }

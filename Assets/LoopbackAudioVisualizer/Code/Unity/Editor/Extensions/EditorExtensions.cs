@@ -283,10 +283,7 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
                     property.isExpanded = EditorGUI.Foldout(foldoutLabelRect, property.isExpanded, label, true, property.arraySize > 0 ? EditorStyles.foldout : Styles.FoldoutNoArrow);
                     EditorGUI.LabelField(sizeLabelRect, sizeLabel, EditorStyles.label);
                     if (GUI.Button(addBtnRect, new GUIContent("+")))
-                    {
-                        property.arraySize++;
-                        property.GetArrayElementAtIndex(property.arraySize - 1).ClearValue();
-                    }
+                        property.InsertNewArrayElement();
 
                     // Array elements
                     if (property.isExpanded && property.arraySize > 0)
