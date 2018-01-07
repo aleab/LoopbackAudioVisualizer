@@ -148,8 +148,14 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
             {
                 foreach (var light in this.lights)
                 {
-                    LightValues defaultValues = this.defaultLightValues?.SingleOrDefault(l => l.Light?.GetInstanceID() == light.GetInstanceID());
-                    if (defaultValues != null)
+                    if (light == null)
+                        continue;
+
+                    // ReSharper disable once ConstantConditionalAccessQualifier
+                    LightValues defaultValues = this.defaultLightValues?.SingleOrDefault(l => l.Light?.GetInstanceID() == light?.GetInstanceID());
+
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                    if (light != null && defaultValues != null)
                         light.intensity = defaultValues.Intensity;
                 }
             }
