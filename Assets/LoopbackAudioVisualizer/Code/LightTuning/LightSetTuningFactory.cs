@@ -20,6 +20,8 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
                     switch (parameters.TuningTarget)
                     {
                         case TuningTarget.Range:
+                        case TuningTarget.SpotAngle:
+                        case TuningTarget.SpotAngleOrRange:
                         case TuningTarget.Intensity:
                             lightSetTuning = new OnOffThresholdTuningFloat((OnOffThresholdTuningFloatParameters)parameters.InternalTuningParameters);
                             break;
@@ -46,6 +48,8 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
                     switch (parameters.TuningTarget)
                     {
                         case TuningTarget.Range:
+                        case TuningTarget.SpotAngle:
+                        case TuningTarget.SpotAngleOrRange:
                         case TuningTarget.Intensity:
                             if (parameters.InternalTuningParameters is OnOffThresholdTuningFloatParameters)
                             {

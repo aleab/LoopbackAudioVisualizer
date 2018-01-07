@@ -5,8 +5,19 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
 {
     public enum TuningTarget
     {
+        /// <summary> The <see cref="Light.range"/> property. </summary>
         Range,
+
+        /// <summary> The <see cref="Light.spotAngle"/> property. </summary>
+        SpotAngle,
+
+        /// <summary> The <see cref="Light.spotAngle"/> property if the light is a spotlight, otherwise <see cref="Light.range"/>. </summary>
+        SpotAngleOrRange,
+
+        /// <summary> The <see cref="Light.intensity"/> property. </summary>
         Intensity,
+
+        /// <summary> The <see cref="Light.color"/> property. </summary>
         Color
     }
 
@@ -17,6 +28,8 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
             switch (tuningTarget)
             {
                 case TuningTarget.Range:
+                case TuningTarget.SpotAngle:
+                case TuningTarget.SpotAngleOrRange:
                 case TuningTarget.Intensity:
                     return typeof(float);
 
@@ -38,6 +51,12 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
             {
                 case TuningTarget.Range:
                     return light.range;
+
+                case TuningTarget.SpotAngle:
+                    return light.spotAngle;
+
+                case TuningTarget.SpotAngleOrRange:
+                    return light.type == LightType.Spot ? light.spotAngle : light.range;
 
                 case TuningTarget.Intensity:
                     return light.intensity;
@@ -74,6 +93,12 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
                 case TuningTarget.Range:
                     return lightValues.Range;
 
+                case TuningTarget.SpotAngle:
+                    return lightValues.SpotAngle;
+
+                case TuningTarget.SpotAngleOrRange:
+                    return lightValues.Light?.type == LightType.Spot ? lightValues.SpotAngle : lightValues.Range;
+
                 case TuningTarget.Intensity:
                     return lightValues.Intensity;
 
@@ -109,6 +134,17 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
             {
                 case TuningTarget.Range:
                     light.range = (float)value;
+                    return true;
+
+                case TuningTarget.SpotAngle:
+                    light.spotAngle = (float)value;
+                    return true;
+
+                case TuningTarget.SpotAngleOrRange:
+                    if (light.type == LightType.Spot)
+                        light.spotAngle = (float)value;
+                    else
+                        light.range = (float)value;
                     return true;
 
                 case TuningTarget.Intensity:

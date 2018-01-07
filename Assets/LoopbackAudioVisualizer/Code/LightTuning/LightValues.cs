@@ -6,6 +6,7 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
     {
         public Light Light { get; }
         public float Range { get; }
+        public float SpotAngle { get; }
         public float Intensity { get; }
         public Color Color { get; }
 
@@ -13,6 +14,7 @@ namespace Aleab.LoopbackAudioVisualizer.LightTuning
         {
             this.Light = light;
             this.Range = light?.range ?? default(float);
+            this.SpotAngle = light?.spotAngle ?? default(float);
             this.Intensity = light?.intensity ?? default(float);
             this.Color = light?.color ?? default(Color);
         }
