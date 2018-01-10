@@ -22,6 +22,12 @@ namespace Aleab.LoopbackAudioVisualizer.Unity.UnityEditor.Extensions
                 EditorApplication.isPlaying = true;
             }
         }
+
+        [MenuItem("Assets/Create/ScriptableObject")]
+        public static void CreateScriptableObject()
+        {
+            ScriptableObjectWindow.Init();
+        }
     }
 }
 
