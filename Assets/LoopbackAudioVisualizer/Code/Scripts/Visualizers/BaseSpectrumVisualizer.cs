@@ -1,6 +1,7 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
 using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Unity;
+using CSCore;
 using CSCore.DSP;
 using CSCore.Streams;
 using System;
@@ -57,8 +58,12 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         {
             if (AudioSourceController.LoopbackAudioSource != null)
             {
-                AudioSourceController.LoopbackAudioSource.DeviceChanged -= this.LoopbackAudioSource_DeviceChanged;
-                AudioSourceController.LoopbackAudioSource.DeviceChanged += this.LoopbackAudioSource_DeviceChanged;
+                this.SubscribeToLoopbackAudioSourceEvents();
+                if (AudioSourceController.LoopbackAudioSource.IsListening)
+                {
+                    AudioSourceController.LoopbackAudioSource.EnsureListening();
+                    this.CreateSpectrumProvider(AudioSourceController.LoopbackAudioSource.LoopbackDevice.DeviceFormat);
+                }
             }
             else
                 Debug.LogError($"{nameof(AudioSourceController)}.{nameof(AudioSourceController.LoopbackAudioSource)} is null!");
@@ -94,51 +99,59 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
 
         protected virtual void OnDisable()
         {
-            if (AudioSourceController.LoopbackAudioSource != null)
-            {
-                AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
-                AudioSourceController.LoopbackAudioSource.DeviceChanged -= this.LoopbackAudioSource_DeviceChanged;
-            }
+            this.UnsubscribeFromLoopbackAudioSourceEvents();
         }
 
         protected virtual void OnEnable()
         {
-            if (AudioSourceController.LoopbackAudioSource != null)
-            {
-                AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
-                AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
-
-                AudioSourceController.LoopbackAudioSource.DeviceChanged -= this.LoopbackAudioSource_DeviceChanged;
-                AudioSourceController.LoopbackAudioSource.DeviceChanged += this.LoopbackAudioSource_DeviceChanged;
-            }
+            this.SubscribeToLoopbackAudioSourceEvents();
         }
 
         protected virtual void OnDestroy()
         {
+            this.UnsubscribeFromLoopbackAudioSourceEvents();
+        }
+
+        private void CreateSpectrumProvider(WaveFormat deviceFormat)
+        {
+            AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+            this.spectrumProvider = new SimpleSpectrumProvider(deviceFormat.Channels, deviceFormat.SampleRate, this.fftSize);
+
+            AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
+            this.Invoke(() =>
+            {
+                this.updateFftDataCoroutine = this.StartCoroutine(this.UpdateFftData());
+            }, UPDATE_FFT_INTERVAL * 1.2f);
+        }
+
+        private void SubscribeToLoopbackAudioSourceEvents()
+        {
             if (AudioSourceController.LoopbackAudioSource != null)
             {
-                AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
-                AudioSourceController.LoopbackAudioSource.DeviceChanged -= this.LoopbackAudioSource_DeviceChanged;
+                this.UnsubscribeFromLoopbackAudioSourceEvents();
+                AudioSourceController.LoopbackAudioSource.DeviceChanged += this.LoopbackAudioSource_DeviceChanged;
+                AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
             }
         }
+
+        private void UnsubscribeFromLoopbackAudioSourceEvents()
+        {
+            if (AudioSourceController.LoopbackAudioSource != null)
+            {
+                AudioSourceController.LoopbackAudioSource.DeviceChanged -= this.LoopbackAudioSource_DeviceChanged;
+                AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
+            }
+        }
+
+        #region Event handlers
 
         protected virtual void LoopbackAudioSource_DeviceChanged(object sender, MMDeviceChangedEventArgs e)
         {
             // If the device changes, we need to stop gathering FFT data and re-create the spectrum provider using the new device's format.
             AudioSourceController.LoopbackAudioSource.SingleBlockRead -= this.LoopbackAudioSource_SingleBlockRead;
             this.updateFftDataCoroutine = null;
-
             if (e.Initialized)
-            {
-                var deviceFormat = e.Device.DeviceFormat;
-                this.spectrumProvider = new SimpleSpectrumProvider(deviceFormat.Channels, deviceFormat.SampleRate, this.fftSize);
-
-                AudioSourceController.LoopbackAudioSource.SingleBlockRead += this.LoopbackAudioSource_SingleBlockRead;
-                this.Invoke(() =>
-                {
-                    this.updateFftDataCoroutine = this.StartCoroutine(this.UpdateFftData());
-                }, UPDATE_FFT_INTERVAL * 1.2f);
-            }
+                this.CreateSpectrumProvider(e.Device.DeviceFormat);
         }
 
         protected virtual void LoopbackAudioSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e)
@@ -162,5 +175,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.Visualizers
         {
             this.FftDataBufferUpdated?.Invoke(this, EventArgs.Empty);
         }
+
+        #endregion Event handlers
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
 using Aleab.LoopbackAudioVisualizer.Helpers;
+using Aleab.LoopbackAudioVisualizer.Settings;
 using CSCore.CoreAudioAPI;
 using System;
 using System.Collections.Generic;
@@ -53,9 +54,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 
             // Select NONE or the preferred device
             int selectedIndex = 0;
-            if (!string.IsNullOrWhiteSpace(Preferences.LoopbackDeviceID))
+            if (!string.IsNullOrWhiteSpace(AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID))
             {
-                int preferredDeviceIndex = this.devices.FindIndex(device => device?.DeviceID == Preferences.LoopbackDeviceID);
+                int preferredDeviceIndex = this.devices.FindIndex(device => device?.DeviceID == AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID);
                 selectedIndex = preferredDeviceIndex > 0 ? preferredDeviceIndex : 0;
             }
             this.dropdownLoopbackDevice.value = selectedIndex;
@@ -81,8 +82,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
         public void DropdownLoopbackDevice_ValueChanged(int selectedIndex)
         {
             MMDevice selectedDevice = this.devices[selectedIndex];
-            Preferences.LoopbackDeviceID = selectedDevice?.DeviceID;
-            this.OnLoopbackDeviceSelected(selectedDevice);
+            if (AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID != selectedDevice?.DeviceID)
+            {
+                AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID = selectedDevice?.DeviceID;
+                this.OnLoopbackDeviceSelected(selectedDevice);
+            }
         }
 
         #endregion UI event handlers

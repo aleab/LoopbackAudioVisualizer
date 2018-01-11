@@ -1,4 +1,5 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
+using Aleab.LoopbackAudioVisualizer.Settings;
 using CSCore;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundIn;
@@ -148,6 +149,54 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             if (initialized)
                 this.StartListening();
         }
+
+        #region EnsureListening
+
+        private MutableTuple<bool, bool> ensureListeningResult;
+
+        /// <summary>
+        /// Guarantees that the component is capturing audio samples.
+        /// If it isn't, the component is restarted (<see cref="Init"/> will be called again).
+        /// </summary>
+        public void EnsureListening()
+        {
+            if (!this.IsListening)
+                this.StartListening();
+
+            this.StartCoroutine(this.EnsureListeningCoroutine(0.25f));
+        }
+
+        private IEnumerator EnsureListeningCoroutine(float timeoutSeconds)
+        {
+            this.ensureListeningResult = new MutableTuple<bool, bool>(false, false);
+            Func<bool> isActuallyListening = () => this.ensureListeningResult.Item1 && this.ensureListeningResult.Item2;
+
+            this.soundInSource.DataAvailable += this.EnsureListening_SoundInSource_DataAvailable;
+            this.sampleSource.SingleBlockRead += this.EnsureListening_SampleSource_SingleBlockRead;
+
+            while (timeoutSeconds >= 0.0f && !isActuallyListening())
+            {
+                yield return new WaitForSeconds(0.05f);
+                timeoutSeconds -= 0.05f;
+            }
+
+            this.soundInSource.DataAvailable -= this.EnsureListening_SoundInSource_DataAvailable;
+            this.sampleSource.SingleBlockRead -= this.EnsureListening_SampleSource_SingleBlockRead;
+
+            if (!isActuallyListening())
+            {
+                Debug.LogWarning($"{nameof(LoopbackAudioSource)} ({this.gameObject.name}) is not listening! Restarting...");
+                this.Init(this.LoopbackDevice);
+            }
+
+            this.ensureListeningResult = null;
+        }
+
+        private void EnsureListening_SoundInSource_DataAvailable(object sender, DataAvailableEventArgs e) => this.ensureListeningResult.Item1 = true;
+
+        private void EnsureListening_SampleSource_SingleBlockRead(object sender, SingleBlockReadEventArgs e) => this.ensureListeningResult.Item2 = true;
+
+        #endregion EnsureListening
 
         public void StartListening()
         {
