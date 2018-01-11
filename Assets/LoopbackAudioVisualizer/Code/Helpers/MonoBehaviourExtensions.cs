@@ -9,9 +9,20 @@ namespace Aleab.LoopbackAudioVisualizer.Helpers
     {
         public static void RequireField(this MonoBehaviour monoBeheviour, [NotNull] string fieldName, object fieldValue)
         {
+            string message = $"Field \"{fieldName}\" in {monoBeheviour.GetType().Name} ({monoBeheviour.gameObject.name}) cannot be null!";
+            RequireField(fieldName, fieldValue, message);
+        }
+
+        public static void RequireField(this ScriptableObject scriptableObject, [NotNull] string fieldName, object fieldValue)
+        {
+            string message = $"Field \"{fieldName}\" in {scriptableObject.GetType().Name} ({scriptableObject.name}) cannot be null!";
+            RequireField(fieldName, fieldValue, message);
+        }
+
+        private static void RequireField([NotNull] string fieldName, object fieldValue, string message)
+        {
             if (fieldValue == null)
             {
-                string message = $"Field \"{fieldName}\" in {monoBeheviour.GetType().Name} ({monoBeheviour.gameObject.name}) cannot be null!";
                 Debug.LogError(message);
                 throw new ArgumentNullException(fieldName, message);
             }

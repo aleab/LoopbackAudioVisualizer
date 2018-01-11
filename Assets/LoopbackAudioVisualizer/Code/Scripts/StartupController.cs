@@ -46,8 +46,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         {
             SceneManager.sceneLoaded += this.SceneManager_SceneLoaded;
 
-            Preferences.Load();
-
 #if DEBUG
             Scenes.AudioVisualizer01.Load(LoadSceneMode.Additive);
 #endif
