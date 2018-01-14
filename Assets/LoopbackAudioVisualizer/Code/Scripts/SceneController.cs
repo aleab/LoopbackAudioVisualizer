@@ -47,16 +47,16 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         private void SubscribeToSceneManagerEvents()
         {
             this.UnsubscribeFromSceneManagerEvents();
-            SceneManager.activeSceneChanged += this.SceneManager_activeSceneChanged;
-            SceneManager.sceneLoaded += this.SceneManager_sceneLoaded;
-            SceneManager.sceneUnloaded += this.SceneManager_sceneUnloaded;
+            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
         }
 
         private void UnsubscribeFromSceneManagerEvents()
         {
-            SceneManager.activeSceneChanged -= this.SceneManager_activeSceneChanged;
-            SceneManager.sceneLoaded -= this.SceneManager_sceneLoaded;
-            SceneManager.sceneUnloaded -= this.SceneManager_sceneUnloaded;
+            SceneManager.activeSceneChanged -= SceneManager_activeSceneChanged;
+            SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
+            SceneManager.sceneUnloaded -= SceneManager_sceneUnloaded;
         }
 
         private void OnEnable()
@@ -74,11 +74,11 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             this.UnsubscribeFromSceneManagerEvents();
         }
 
-        private void SceneManager_activeSceneChanged(Scene previous, Scene current)
+        private static void SceneManager_activeSceneChanged(Scene previous, Scene current)
         {
         }
 
-        private void SceneManager_sceneLoaded(Scene scene, LoadSceneMode mode)
+        private static void SceneManager_sceneLoaded(Scene scene, LoadSceneMode mode)
         {
             // Remove old menu items
             UIController.SettingsMenu.TabMenu.RemoveNonDefaultItems();
@@ -89,7 +89,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             UIController.SettingsMenu.TabMenu.AddItems(menuItems);
         }
 
-        private void SceneManager_sceneUnloaded(Scene scene)
+        private static void SceneManager_sceneUnloaded(Scene scene)
         {
         }
     }
