@@ -255,7 +255,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         private void SetupSoundInSource()
         {
             this.DisposeSoundInSource();
-            int bufferSize = (int)this.wasapiLoopbackCapture.WaveFormat.MillisecondsToBytes(AppSettings.Instance.GameSettings.CaptureSettings.BufferSizeMilliseconds);
+            int bufferSize = (int)this.wasapiLoopbackCapture.WaveFormat.MillisecondsToBytes(Preferences.Instance.GameSettings.CaptureSettings.BufferSizeMilliseconds);
             this.soundInSource = new SoundInSource(this.wasapiLoopbackCapture, bufferSize);
             this.soundInSource.DataAvailable += this.SoundInSource_DataAvailable;
         }
@@ -277,12 +277,12 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private void StartupController_StartupCompleted(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID))
+            if (string.IsNullOrWhiteSpace(Preferences.Instance.GameSettings.CaptureSettings.LoopbackDeviceID))
                 ErrorController.Instance.AddErrorMessage();
             else
             {
                 MMDeviceCollection deviceCollection = MMDeviceEnumerator.EnumerateDevices(DataFlow.Render, DeviceState.Active);
-                MMDevice device = deviceCollection.FirstOrDefault(mmDevice => mmDevice.DeviceID == AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID);
+                MMDevice device = deviceCollection.FirstOrDefault(mmDevice => mmDevice.DeviceID == Preferences.Instance.GameSettings.CaptureSettings.LoopbackDeviceID);
 
                 this.Init(device);
             }

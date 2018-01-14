@@ -6,20 +6,20 @@ using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Settings
 {
-    public sealed class AppSettings : MonoBehaviour
+    public sealed class Preferences : MonoBehaviour
     {
         #region Singleton
 
-        private static AppSettings _instance;
+        private static Preferences _instance;
 
-        public static AppSettings Instance
+        public static Preferences Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    GameObject go = new GameObject($"[C] {nameof(AppSettings)}");
-                    _instance = go.AddComponent<AppSettings>();
+                    GameObject go = new GameObject($"[C] {nameof(Preferences)}");
+                    _instance = go.AddComponent<Preferences>();
 
                     Debug.LogWarning("Settings object has been created automatically");
                 }

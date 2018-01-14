@@ -95,7 +95,7 @@ namespace Aleab.LoopbackAudioVisualizer.Settings
         /// <summary>
         /// The application's Settings folder.
         /// </summary>
-        public static string SettingsFolderPath { get { return Path.Combine(AppSettings.AppData, "Settings"); } }
+        public static string SettingsFolderPath { get { return Path.Combine(Preferences.AppData, "Settings"); } }
 
         /// <summary>
         /// The file extension used for settings files.
