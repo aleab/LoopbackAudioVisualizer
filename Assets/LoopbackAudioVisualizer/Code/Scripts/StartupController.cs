@@ -44,8 +44,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private void Start()
         {
-            SceneManager.sceneLoaded += this.SceneManager_SceneLoaded;
-
 #if DEBUG
             Scenes.AudioVisualizer01.Load(LoadSceneMode.Additive);
 #endif
@@ -56,11 +54,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         private void OnDestroy()
         {
             _instance = null;
-            SceneManager.sceneLoaded -= this.SceneManager_SceneLoaded;
-        }
-
-        private void SceneManager_SceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
-        {
         }
 
         private void OnStartupCompleted()

@@ -1,6 +1,7 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Helpers;
 using Aleab.LoopbackAudioVisualizer.Unity;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -57,6 +58,8 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 
         #endregion Inspector
 
+        private readonly HashSet<int> runtimeAddedItems = new HashSet<int>();
+
         private TabMenuItem[] tabMenuItems;
         private TabMenuTab[] tabMenuTabs;
 
@@ -86,15 +89,47 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
             this.CreateTabs();
         }
 
+        public void RemoveNonDefaultItems()
+        {
+            if (this.tabMenuItems == null)
+                return;
+            if (this.runtimeAddedItems.Count == 0)
+                return;
+
+            var items = this.tabMenuItems.Where(item => this.runtimeAddedItems.Contains(item.GetInstanceID())).ToArray();
+            if (items.Length > 0)
+            {
+                foreach (var item in items)
+                    Destroy(item.gameObject);
+
+                this.RemoveTabs();
+                this.CreateTabs();
+            }
+        }
+
         public void AddItem(TabMenuItem item)
         {
+            if (this.AddItemInternal(item))
+                this.CreateTabs();
+        }
+
+        public void AddItems(IEnumerable<TabMenuItem> items)
+        {
+            if (items.Aggregate(false, (shouldRecreateTabs, item) => shouldRecreateTabs | this.AddItemInternal(item)))
+                this.CreateTabs();
+        }
+
+        // ReSharper disable once SuggestBaseTypeForParameter
+        private bool AddItemInternal(TabMenuItem item)
+        {
+            this.runtimeAddedItems.Add(item.GetInstanceID());
             item.gameObject.transform.parent = this.contentArea.gameObject.transform;
             if (this.tabMenuTabs != null)
             {
-                foreach (var tab in this.tabMenuTabs)
-                    Destroy(tab.gameObject);
-                this.CreateTabs();
+                this.RemoveTabs();
+                return true;
             }
+            return false;
         }
 
         private void CreateTabs()
@@ -125,6 +160,45 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
                 tab.Resized += this.TabMenuTab_Resized;
                 tab.Clicked += this.TabMenuTab_Clicked;
             }
+        }
+
+        private void RemoveTabs()
+        {
+            if (this.tabMenuTabs == null)
+                return;
+
+            foreach (var tab in this.tabMenuTabs)
+                Destroy(tab.gameObject);
+            Array.Clear(this.tabMenuTabs, 0, this.tabMenuTabs.Length);
+        }
+
+        // ReSharper disable once SuggestBaseTypeForParameter
+        private void UpdateCurrentTabIndex(TabMenuTab currentTab)
+        {
+            this.currentTabIndex = this.tabMenuTabs.ToList().FindIndex(t => t.GetInstanceID() == currentTab.GetInstanceID());
+        }
+
+        private void UpdateTabPositionAndColor(TabMenuTab tab, float x, int? index = null, bool? selected = null)
+        {
+            bool isCurrent = selected ?? (index != null
+                ? index == this.currentTabIndex
+                : this.tabMenuTabs.ToList().FindIndex(t => t.GetInstanceID() == tab.GetInstanceID()) == this.currentTabIndex);
+
+            tab.Color = isCurrent ? this.activeColor : this.inactiveColor;
+            tab.HighlightedColor = isCurrent ? Color.white : Color.HSVToRGB(0.0f, 0.0f, 0.9375f);
+            this.MoveTab(tab, x, isCurrent);
+        }
+
+        private void MoveTab(TabMenuTab tab, float x)
+        {
+            bool selected = this.tabMenuTabs.ToList().FindIndex(t => t.GetInstanceID() == tab.GetInstanceID()) == this.currentTabIndex;
+            this.MoveTab(tab, x, selected);
+        }
+
+        private void MoveTab(TabMenuTab tab, float x, bool selected)
+        {
+            tab.RectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, x, tab.RectTransform.rect.width);
+            tab.RectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Bottom, selected ? -2.0f : 0.0f, this.tabsRect.rect.height);
         }
 
         private void TabMenuTab_Resized(object sender, EventArgs e)
@@ -158,35 +232,6 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 
             this.tabMenuItems[previousIndex].gameObject.SetActive(false);
             this.tabMenuItems[this.currentTabIndex].gameObject.SetActive(true);
-        }
-
-        // ReSharper disable once SuggestBaseTypeForParameter
-        private void UpdateCurrentTabIndex(TabMenuTab currentTab)
-        {
-            this.currentTabIndex = this.tabMenuTabs.ToList().FindIndex(t => t.GetInstanceID() == currentTab.GetInstanceID());
-        }
-
-        private void UpdateTabPositionAndColor(TabMenuTab tab, float x, int? index = null, bool? selected = null)
-        {
-            bool isCurrent = selected ?? (index != null
-                ? index == this.currentTabIndex
-                : this.tabMenuTabs.ToList().FindIndex(t => t.GetInstanceID() == tab.GetInstanceID()) == this.currentTabIndex);
-
-            tab.Color = isCurrent ? this.activeColor : this.inactiveColor;
-            tab.HighlightedColor = isCurrent ? Color.white : Color.HSVToRGB(0.0f, 0.0f, 0.9375f);
-            this.MoveTab(tab, x, isCurrent);
-        }
-
-        private void MoveTab(TabMenuTab tab, float x)
-        {
-            bool selected = this.tabMenuTabs.ToList().FindIndex(t => t.GetInstanceID() == tab.GetInstanceID()) == this.currentTabIndex;
-            this.MoveTab(tab, x, selected);
-        }
-
-        private void MoveTab(TabMenuTab tab, float x, bool selected)
-        {
-            tab.RectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, x, tab.RectTransform.rect.width);
-            tab.RectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Bottom, selected ? -2.0f : 0.0f, this.tabsRect.rect.height);
         }
     }
 }
