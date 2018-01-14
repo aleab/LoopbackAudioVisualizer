@@ -65,16 +65,17 @@ namespace Aleab.LoopbackAudioVisualizer.Settings
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
-            unchecked
+            if (!this.hashCode.HasValue)
             {
-                if (!this.hashCode.HasValue)
+                unchecked
                 {
-                    this.hashCode = base.GetHashCode();
-                    this.hashCode = (this.hashCode * 397) ^ (this.loopbackDeviceID != null ? this.loopbackDeviceID.GetHashCode() : 0);
-                    this.hashCode = (this.hashCode * 397) ^ this.bufferSizeMilliseconds;
+                    int hash = base.GetHashCode();
+                    hash = (hash * 397) ^ (this.loopbackDeviceID != null ? this.loopbackDeviceID.GetHashCode() : 0);
+                    hash = (hash * 397) ^ this.bufferSizeMilliseconds;
+                    this.hashCode = hash * 397;
                 }
-                return this.hashCode.Value;
             }
+            return this.hashCode.Value;
         }
 
         #endregion Equals, GetHashCode
