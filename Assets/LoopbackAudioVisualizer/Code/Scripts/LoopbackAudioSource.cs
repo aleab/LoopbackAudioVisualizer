@@ -1,5 +1,6 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
 using Aleab.LoopbackAudioVisualizer.Settings;
+using Aleab.LoopbackAudioVisualizer.Settings.UI;
 using CSCore;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundIn;
@@ -101,7 +102,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
 
         private void Start()
         {
-            UIController.SettingsPanel.LoopbackDeviceSelected += this.SettingsPanel_LoopbackDeviceSelected;
+            UIController.SettingsMenu.FindSettingsPanel<CaptureSettingsPanel>().LoopbackDeviceSelected += this.SettingsPanel_LoopbackDeviceSelected;
             this.updateVolumeCoroutine = this.StartCoroutine(this.UpdateVolume());
         }
 

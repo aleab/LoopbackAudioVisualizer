@@ -1,6 +1,5 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Events;
 using Aleab.LoopbackAudioVisualizer.Helpers;
-using Aleab.LoopbackAudioVisualizer.Settings;
 using CSCore.CoreAudioAPI;
 using System;
 using System.Collections.Generic;
@@ -8,9 +7,9 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
+namespace Aleab.LoopbackAudioVisualizer.Settings.UI
 {
-    public class SettingsPanel : ShowHideComponent
+    public class CaptureSettingsPanel : SettingsPanel<CaptureSettings>
     {
         /// <summary>
         /// List of devices used to populate the dropdown's options.
@@ -35,6 +34,10 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 
         #endregion Events
 
+        /// <inheritdoc />
+        protected override CaptureSettings Settings { get { return Preferences.Instance.GameSettings.CaptureSettings; } }
+
+        /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
@@ -54,24 +57,26 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
 
             // Select NONE or the preferred device
             int selectedIndex = 0;
-            if (!string.IsNullOrWhiteSpace(AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID))
+            if (!string.IsNullOrWhiteSpace(Preferences.Instance.GameSettings.CaptureSettings.LoopbackDeviceID))
             {
-                int preferredDeviceIndex = this.devices.FindIndex(device => device?.DeviceID == AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID);
+                int preferredDeviceIndex = this.devices.FindIndex(device => device?.DeviceID == Preferences.Instance.GameSettings.CaptureSettings.LoopbackDeviceID);
                 selectedIndex = preferredDeviceIndex > 0 ? preferredDeviceIndex : 0;
             }
             this.dropdownLoopbackDevice.value = selectedIndex;
             this.dropdownLoopbackDevice.captionText.text = this.dropdownLoopbackDevice.options[selectedIndex].text;
         }
 
-        protected override void OnShown()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
-            base.OnShown();
+            base.OnEnable();
             this.PopulateDropdownLoopbackDevice();
         }
 
-        protected override void OnHidden()
+        /// <inheritdoc />
+        protected override void OnDisable()
         {
-            base.OnHidden();
+            base.OnDisable();
             this.devices.Clear();
         }
 
@@ -82,9 +87,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts.UI
         public void DropdownLoopbackDevice_ValueChanged(int selectedIndex)
         {
             MMDevice selectedDevice = this.devices[selectedIndex];
-            if (AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID != selectedDevice?.DeviceID)
+            if (Preferences.Instance.GameSettings.CaptureSettings.LoopbackDeviceID != selectedDevice?.DeviceID)
             {
-                AppSettings.Instance.GameSettings.CaptureSettings.LoopbackDeviceID = selectedDevice?.DeviceID;
+                Preferences.Instance.GameSettings.CaptureSettings.LoopbackDeviceID = selectedDevice?.DeviceID;
                 this.OnLoopbackDeviceSelected(selectedDevice);
             }
         }

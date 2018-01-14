@@ -1,5 +1,5 @@
 ﻿using Aleab.LoopbackAudioVisualizer.Helpers;
-using Aleab.LoopbackAudioVisualizer.Scripts.UI;
+using Aleab.LoopbackAudioVisualizer.Settings.UI;
 using UnityEngine;
 
 namespace Aleab.LoopbackAudioVisualizer.Scripts
@@ -36,7 +36,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
         private Canvas canvas;
 
         [SerializeField]
-        private SettingsPanel settingsPanel;
+        private SettingsMenu settingsMenu;
 
 #pragma warning restore 0649
 
@@ -47,9 +47,9 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             get { return _instance?.canvas; }
         }
 
-        public static SettingsPanel SettingsPanel
+        public static SettingsMenu SettingsMenu
         {
-            get { return _instance?.settingsPanel; }
+            get { return _instance?.settingsMenu; }
         }
 
         private void Awake()
@@ -65,7 +65,7 @@ namespace Aleab.LoopbackAudioVisualizer.Scripts
             DontDestroyOnLoad(this.gameObject);
 
             this.RequireField(nameof(this.canvas), this.canvas);
-            this.RequireField(nameof(this.settingsPanel), this.settingsPanel);
+            this.RequireField(nameof(this.settingsMenu), this.settingsMenu);
         }
     }
 }
